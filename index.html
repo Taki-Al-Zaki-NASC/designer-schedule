@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer Slot Distribution & Management System</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Firebase SDK (Realtime Database Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0b0e14;
+            --card-bg: #151a23;
+            --card-border: #212936;
+            --accent-blue: #0075ff;
+            --accent-hover: #0056b3;
+            --accent-orange: #ff9f43;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --text-main: #ffffff;
+            --text-muted: #8a94a6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand-title h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .brand-title h1 span {
+            color: var(--accent-blue);
+        }
+
+        .system-time {
+            font-family: monospace;
+            color: var(--accent-blue);
+            background: rgba(0, 117, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .role-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .controller-btn {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s ease;
+        }
+
+        .controller-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .controller-btn.active {
+            background: var(--accent-green);
+        }
+
+        /* Stats Donut Cards Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* SVG Donut Chart Styling */
+        .donut-chart {
+            width: 54px;
+            height: 54px;
+            transform: rotate(-90deg);
+        }
+
+        .donut-chart circle {
+            fill: none;
+            stroke-width: 3.8;
+        }
+
+        .donut-bg { stroke: #212936; }
+        .donut-fill-blue { stroke: var(--accent-blue); stroke-linecap: round; }
+        .donut-fill-green { stroke: var(--accent-green); stroke-linecap: round; }
+        .donut-fill-orange { stroke: var(--accent-orange); stroke-linecap: round; }
+        .donut-fill-purple { stroke: var(--accent-purple); stroke-linecap: round; }
+
+        .stat-info h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 2px;
+        }
+
+        /* Controls Panel */
+        .controls-row {
+            display: grid;
+            grid-template-columns: 1fr 240px;
+            gap: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .controls-row { grid-template-columns: 1fr; }
+        }
+
+        .search-box, .select-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box input, .select-box select {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .select-box select option {
+            background: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        .lookup-result {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lookup-result.active { display: flex; }
+
+        /* Schedule Grid */
+        .grid-header {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .slot-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .slot-card.active-reveal {
+            border-color: rgba(0, 117, 255, 0.4);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+        }
+
+        .slot-date {
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .designer-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .status-revealed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .status-submitted { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
+        .status-locked { background: rgba(138, 148, 166, 0.1); color: var(--text-muted); }
+
+        .btn-action {
+            background: var(--accent-blue);
+            border: none;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover { background: var(--accent-hover); }
+        .btn-approve { background: var(--accent-green); }
+        .btn-approve:hover { background: #0d9668; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Navbar -->
+    <header class="top-navbar">
+        <div class="brand-title">
+            <h1><i data-lucide="layers"></i> Schedule<span>Dashboard</span></h1>
+        </div>
+        <div class="system-time" id="systemClock">00:00:00 UTC</div>
+        <div class="role-bar">
+            <button id="controllerToggle" class="controller-btn" onclick="toggleControllerMode()">
+                <i data-lucide="lock"></i> Admin Access
+            </button>
+        </div>
+    </header>
+
+    <!-- UI Inspired Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <svg class="donut-chart" viewBox="0 0 36 36">
+                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
+                <circle class="donut-fill-blue" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
+            </svg>
+            <div class="stat-info">
+                <h4>Total Slots</h4>
+                <div class="stat-value" id="statTotal">8</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <svg class="donut-chart" viewBox="0 0 36 36">
+                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
+                <circle class="donut-fill-green" id="donutCompleted" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
+            </svg>
+            <div class="stat-info">
+                <h4>Completed</h4>
+                <div class="stat-value" id="statCompleted">0</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <svg class="donut-chart" viewBox="0 0 36 36">
+                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
+                <circle class="donut-fill-orange" id="donutPending" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
+            </svg>
+            <div class="stat-info">
+                <h4>Pending Review</h4>
+                <div class="stat-value" id="statPending">0</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <svg class="donut-chart" viewBox="0 0 36 36">
+                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
+                <circle class="donut-fill-purple" id="donutRemaining" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
+            </svg>
+            <div class="stat-info">
+                <h4>Remaining</h4>
+                <div class="stat-value" id="statRemaining">8</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-row">
+        <div class="search-box">
+            <i data-lucide="search" style="color: var(--text-muted); width: 18px;"></i>
+            <input type="text" id="designerSearch" placeholder="Search designer assignment..." oninput="handleSearch()">
+        </div>
+        <div class="select-box">
+            <i data-lucide="calendar" style="color: var(--text-muted); width: 18px;"></i>
+            <select id="monthSelect" onchange="renderSchedule()">
+                <option value="current">Current Active Month</option>
+                <option value="next">Next Month</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Search Overlay Box -->
+    <div id="lookupResult" class="lookup-result">
+        <div>
+            <strong id="lookupName">Designer Name</strong>
+            <p id="lookupDate" style="font-size: 0.85rem; color: var(--text-muted);">Next Assignment: N/A</p>
+        </div>
+        <span id="lookupCountdown" style="font-weight: 700; color: var(--accent-orange);"></span>
+    </div>
+
+    <!-- Schedule Grid -->
+    <div class="grid-header">
+        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule
+    </div>
+    <div id="scheduleGrid" class="schedule-grid"></div>
+</div>
+
+<script>
+    const ADMIN_PASSWORD = "admin123";
+
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD2rVSwbwjW7Wp30askxe2Sldxjd7Po9mo",
+        authDomain: "uyfsr-ae621.firebaseapp.com",
+        projectId: "uyfsr-ae621",
+        storageBucket: "uyfsr-ae621.firebasestorage.app",
+        messagingSenderId: "749011113927",
+        appId: "1:749011113927:web:e9b0860de944ada7482be2",
+        measurementId: "G-75F66FVXFE"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const DESIGNERS = [
+        "Shahrin Noor Sarah",
+        "Mushfiqur Rahman Pranto",
+        "Ahanaf Fahad Sinan",
+        "Sirajum Munira",
+        "Taki Al Zaki",
+        "Tashkir"
+    ];
+
+    let isControllerMode = false;
+    let slotStates = {};
+
+    db.ref("schedule_slots").on("value", (snapshot) => {
+        slotStates = snapshot.val() || {};
+        renderSchedule();
+    });
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('systemClock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function toggleControllerMode() {
+        const btn = document.getElementById('controllerToggle');
+        if (!isControllerMode) {
+            const userPass = prompt("Enter Controller Access Password:");
+            if (userPass === ADMIN_PASSWORD) {
+                isControllerMode = true;
+                btn.classList.add('active');
+                btn.innerHTML = `<i data-lucide="unlock"></i> Admin Active`;
+            } else if (userPass !== null) {
+                alert("Incorrect Password!");
+            }
+        } else {
+            isControllerMode = false;
+            btn.classList.remove('active');
+            btn.innerHTML = `<i data-lucide="lock"></i> Admin Access`;
+        }
+        lucide.createIcons();
+        renderSchedule();
+    }
+
+    function generateMonthSchedule(year, monthIndex) {
+        const slots = [];
+        const rotationCycle = monthIndex % 3;
+        let sequence = [];
+
+        if (rotationCycle === 0) sequence = [DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1]];
+        else if (rotationCycle === 1) sequence = [DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3]];
+        else sequence = [DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5]];
+
+        let seqIdx = 0;
+        const date = new Date(year, monthIndex, 1);
+        while (date.getMonth() === monthIndex && seqIdx < sequence.length) {
+            const day = date.getDay();
+            if (day === 5 || day === 6) {
+                slots.push({
+                    id: `${year}-${monthIndex}-${seqIdx}`,
+                    date: new Date(date),
+                    dayName: day === 5 ? "Friday" : "Saturday",
+                    assignedDesigner: sequence[seqIdx]
+                });
+                seqIdx++;
+            }
+            date.setDate(date.getDate() + 1);
+        }
+        return slots;
+    }
+
+    function markSubmitted(slotId) {
+        const userPass = prompt("Enter Password to Submit Poster:");
+        if (userPass === ADMIN_PASSWORD) {
+            db.ref("schedule_slots/" + slotId).update({ submitted: true, approved: false });
+        } else if (userPass !== null) {
+            alert("Incorrect Password!");
+        }
+    }
+
+    function markApproved(slotId) {
+        db.ref("schedule_slots/" + slotId).update({ submitted: true, approved: true });
+    }
+
+    function renderSchedule() {
+        const grid = document.getElementById('scheduleGrid');
+        grid.innerHTML = '';
+
+        const now = new Date();
+        const monthOffset = document.getElementById('monthSelect').value === 'next' ? 1 : 0;
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
+
+        let completedCount = 0;
+        let pendingCount = 0;
+
+        schedule.forEach((slot, idx) => {
+            const state = slotStates[slot.id] || { submitted: false, approved: false };
+
+            if (state.approved) completedCount++;
+            else if (state.submitted) pendingCount++;
+
+            let isUnlocked = idx === 0 || (slotStates[schedule[idx - 1].id] && slotStates[schedule[idx - 1].id].approved);
+
+            const dateString = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            let statusMarkup = '';
+            let actionMarkup = '';
+
+            if (isUnlocked) {
+                if (state.approved) {
+                    statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
+                } else if (state.submitted) {
+                    statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
+                    if (isControllerMode) {
+                        actionMarkup = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
+                    }
+                } else {
+                    statusMarkup = `<span class="status-badge status-revealed">Active Slot</span>`;
+                    actionMarkup = `<button class="btn-action" onclick="markSubmitted('${slot.id}')"><i data-lucide="upload"></i> Submit</button>`;
+                }
+            } else {
+                statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
+            }
+
+            grid.innerHTML += `
+                <div class="slot-card ${isUnlocked ? 'active-reveal' : ''}">
+                    <div class="card-top">
+                        <span class="slot-date">
+                            <i data-lucide="calendar" style="width: 14px; color: var(--accent-blue);"></i>
+                            ${dateString}
+                        </span>
+                        <span>${slot.dayName}</span>
+                    </div>
+                    <div class="designer-name">${isUnlocked ? slot.assignedDesigner : '••••••••••••'}</div>
+                    <div class="card-bottom">
+                        ${statusMarkup}
+                        ${actionMarkup}
+                    </div>
+                </div>
+            `;
+        });
+
+        // Update Stat Donut Charts
+        const total = schedule.length;
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statCompleted').innerText = completedCount;
+        document.getElementById('statPending').innerText = pendingCount;
+        document.getElementById('statRemaining').innerText = total - completedCount;
+
+        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount/total)*100} 100`);
+        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount/total)*100} 100`);
+        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount)/total)*100} 100`);
+
+        lucide.createIcons();
+    }
+
+    function handleSearch() {
+        const query = document.getElementById('designerSearch').value.trim().toLowerCase();
+        const resultBox = document.getElementById('lookupResult');
+
+        if (!query) {
+            resultBox.classList.remove('active');
+            return;
+        }
+
+        const now = new Date();
+        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth());
+        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1);
+        const fullSchedule = [...currentSchedule, ...nextSchedule];
+
+        const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= new Date(now.setHours(0,0,0,0)));
+
+        if (match) {
+            const dateStr = match.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('lookupName').innerText = match.assignedDesigner;
+            document.getElementById('lookupDate').innerText = `Next Slot: ${dateStr}`;
+            const daysLeft = Math.ceil((match.date - new Date()) / (1000 * 60 * 60 * 24));
+            document.getElementById('lookupCountdown').innerText = daysLeft === 0 ? 'Today' : `In ${daysLeft} Days`;
+            resultBox.classList.add('active');
+        } else {
+            document.getElementById('lookupName').innerText = "No Upcoming Slot";
+            document.getElementById('lookupDate').innerText = "Check name or select next month.";
+            document.getElementById('lookupCountdown').innerText = "";
+            resultBox.classList.add('active');
+        }
+    }
+
+    renderSchedule();
+</script>
+
+</body>
+</html>
