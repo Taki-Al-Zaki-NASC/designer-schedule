@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Designer Slot Distribution & Management System</title>
+    <link rel="icon" type="image/png" href="favicon.jpg">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -53,23 +54,32 @@
         /* Top Navbar */
         .top-navbar {
             background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 4px 24px; /* উপর-নিচের প্যাডিং ১২px থেকে কমিয়ে ৪px করে দেওয়া হয়েছে */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
         }
 
         .brand-title h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: var(--text-main);
+        }
+
+        /* Logo Styling */
+        .brand-logo {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+            mix-blend-mode: screen; /* ছবির কালো ব্যাকগ্রাউন্ড স্মুথলি ব্লেন্ড হওয়ার জন্য */
         }
 
         .brand-title h1 span {
@@ -392,7 +402,10 @@
     <!-- Navbar -->
     <header class="top-navbar">
         <div class="brand-title">
-            <h1><i data-lucide="layers"></i> Schedule<span>Dashboard</span></h1>
+            <h1>
+                <img src="logo.png" alt="UYFSR Logo" class="brand-logo">
+                Schedule<span>Dashboard</span>
+            </h1>
         </div>
         <div class="system-time" id="systemClock">00:00:00 UTC</div>
         <div class="role-bar">
