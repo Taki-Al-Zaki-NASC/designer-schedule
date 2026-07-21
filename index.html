@@ -21,6 +21,7 @@
             --accent-orange: #ff9f43;
             --accent-green: #10b981;
             --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
             --text-main: #ffffff;
             --text-muted: #8a94a6;
         }
@@ -112,6 +113,85 @@
 
         .controller-btn.active {
             background: var(--accent-green);
+        }
+
+        /* Admin Management Panel */
+        .admin-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-blue);
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .admin-panel.active {
+            display: flex;
+        }
+
+        .admin-panel-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-user-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-user-box input {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .btn-add {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .designer-list-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .designer-tag {
+            background: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-delete-tag {
+            color: var(--accent-red);
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
         }
 
         /* Stats Donut Cards Row */
@@ -322,6 +402,20 @@
         </div>
     </header>
 
+    <!-- Admin User Management Panel -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-panel-header">
+            <i data-lucide="user-plus"></i> Manage Designers List
+        </div>
+        <div class="add-user-box">
+            <input type="text" id="newDesignerName" placeholder="Enter new designer full name...">
+            <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
+        </div>
+        <div class="designer-list-tags" id="designerTagList">
+            <!-- Designer Tags rendered dynamically -->
+        </div>
+    </div>
+
     <!-- UI Inspired Stat Cards -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -331,7 +425,7 @@
             </svg>
             <div class="stat-info">
                 <h4>Total Slots</h4>
-                <div class="stat-value" id="statTotal">8</div>
+                <div class="stat-value" id="statTotal">0</div>
             </div>
         </div>
 
@@ -364,7 +458,7 @@
             </svg>
             <div class="stat-info">
                 <h4>Remaining</h4>
-                <div class="stat-value" id="statRemaining">8</div>
+                <div class="stat-value" id="statRemaining">0</div>
             </div>
         </div>
     </div>
@@ -378,7 +472,7 @@
         <div class="select-box">
             <i data-lucide="calendar" style="color: var(--text-muted); width: 18px;"></i>
             <select id="monthSelect" onchange="renderSchedule()">
-                <option value="current">Current Active Month</option>
+                <option value="current">Current Active </option>
                 <option value="next">Next Month</option>
             </select>
         </div>
@@ -417,7 +511,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const DESIGNERS = [
+    const DEFAULT_DESIGNERS = [
         "Shahrin Noor Sarah",
         "Mushfiqur Rahman Pranto",
         "Ahanaf Fahad Sinan",
@@ -426,9 +520,24 @@
         "Tashkir"
     ];
 
+    let DESIGNERS = [];
     let isControllerMode = false;
     let slotStates = {};
 
+    // Sync Designers List from Firebase
+    db.ref("designers_list").on("value", (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+            DESIGNERS = Array.isArray(val) ? val : Object.values(val);
+        } else {
+            DESIGNERS = [...DEFAULT_DESIGNERS];
+            db.ref("designers_list").set(DESIGNERS);
+        }
+        renderAdminDesignerTags();
+        renderSchedule();
+    });
+
+    // Sync Slots from Firebase
     db.ref("schedule_slots").on("value", (snapshot) => {
         slotStates = snapshot.val() || {};
         renderSchedule();
@@ -443,12 +552,15 @@
 
     function toggleControllerMode() {
         const btn = document.getElementById('controllerToggle');
+        const adminPanel = document.getElementById('adminPanel');
+
         if (!isControllerMode) {
             const userPass = prompt("Enter Controller Access Password:");
             if (userPass === ADMIN_PASSWORD) {
                 isControllerMode = true;
                 btn.classList.add('active');
                 btn.innerHTML = `<i data-lucide="unlock"></i> Admin Active`;
+                adminPanel.classList.add('active');
             } else if (userPass !== null) {
                 alert("Incorrect Password!");
             }
@@ -456,32 +568,68 @@
             isControllerMode = false;
             btn.classList.remove('active');
             btn.innerHTML = `<i data-lucide="lock"></i> Admin Access`;
+            adminPanel.classList.remove('active');
         }
         lucide.createIcons();
         renderSchedule();
     }
 
-    function generateMonthSchedule(year, monthIndex) {
+    function renderAdminDesignerTags() {
+        const tagContainer = document.getElementById('designerTagList');
+        if (!tagContainer) return;
+        tagContainer.innerHTML = '';
+
+        DESIGNERS.forEach((name, index) => {
+            tagContainer.innerHTML += `
+                <div class="designer-tag">
+                    <span>${name}</span>
+                    <button class="btn-delete-tag" onclick="deleteDesigner(${index})" title="Remove Designer">
+                        <i data-lucide="x" style="width: 14px;"></i>
+                    </button>
+                </div>
+            `;
+        });
+        lucide.createIcons();
+    }
+
+    function addDesigner() {
+        const input = document.getElementById('newDesignerName');
+        const name = input.value.trim();
+        if (name) {
+            DESIGNERS.push(name);
+            db.ref("designers_list").set(DESIGNERS);
+            input.value = '';
+        }
+    }
+
+    function deleteDesigner(index) {
+        if (confirm(`Are you sure you want to remove ${DESIGNERS[index]}?`)) {
+            DESIGNERS.splice(index, 1);
+            db.ref("designers_list").set(DESIGNERS);
+        }
+    }
+
+    function generateMonthSchedule(year, monthIndex, minDateDay = 1) {
+        if (DESIGNERS.length === 0) return [];
+        
         const slots = [];
-        const rotationCycle = monthIndex % 3;
-        let sequence = [];
-
-        if (rotationCycle === 0) sequence = [DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1]];
-        else if (rotationCycle === 1) sequence = [DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3]];
-        else sequence = [DESIGNERS[4], DESIGNERS[5], DESIGNERS[0], DESIGNERS[1], DESIGNERS[2], DESIGNERS[3], DESIGNERS[4], DESIGNERS[5]];
-
-        let seqIdx = 0;
         const date = new Date(year, monthIndex, 1);
-        while (date.getMonth() === monthIndex && seqIdx < sequence.length) {
+        let designerIdx = 0;
+
+        while (date.getMonth() === monthIndex) {
             const day = date.getDay();
             if (day === 5 || day === 6) {
-                slots.push({
-                    id: `${year}-${monthIndex}-${seqIdx}`,
-                    date: new Date(date),
-                    dayName: day === 5 ? "Friday" : "Saturday",
-                    assignedDesigner: sequence[seqIdx]
-                });
-                seqIdx++;
+                const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
+                
+                if (date.getDate() >= minDateDay) {
+                    slots.push({
+                        id: `${year}-${monthIndex}-${date.getDate()}`,
+                        date: new Date(date),
+                        dayName: day === 5 ? "Friday" : "Saturday",
+                        assignedDesigner: assignedName
+                    });
+                }
+                designerIdx++;
             }
             date.setDate(date.getDate() + 1);
         }
@@ -508,7 +656,9 @@
         const now = new Date();
         const monthOffset = document.getElementById('monthSelect').value === 'next' ? 1 : 0;
         const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
+        
+        const startFromDay = (monthOffset === 0 && targetDate.getMonth() === 6) ? 23 : 1;
+        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth(), startFromDay);
 
         let completedCount = 0;
         let pendingCount = 0;
@@ -567,9 +717,10 @@
         document.getElementById('statPending').innerText = pendingCount;
         document.getElementById('statRemaining').innerText = total - completedCount;
 
-        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount/total)*100} 100`);
-        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount/total)*100} 100`);
-        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount)/total)*100} 100`);
+        const safeTotal = total === 0 ? 1 : total;
+        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount/safeTotal)*100} 100`);
+        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount/safeTotal)*100} 100`);
+        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount)/safeTotal)*100} 100`);
 
         lucide.createIcons();
     }
@@ -584,8 +735,8 @@
         }
 
         const now = new Date();
-        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth());
-        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1);
+        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth(), 23);
+        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1, 1);
         const fullSchedule = [...currentSchedule, ...nextSchedule];
 
         const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= new Date(now.setHours(0,0,0,0)));
