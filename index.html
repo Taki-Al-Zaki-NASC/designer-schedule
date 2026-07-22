@@ -664,13 +664,7 @@
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
-            const userPass = prompt("Enter Password to Confirm Upload:");
-            if (userPass !== ADMIN_PASSWORD) {
-                if (userPass !== null) alert("Incorrect Password! Upload Cancelled.");
-                return;
-            }
-
+            
             alert("Processing Image... Please wait!");
 
             const reader = new FileReader();
