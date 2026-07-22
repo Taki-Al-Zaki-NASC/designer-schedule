@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Designer Slot Distribution & Management System</title>
-    <!-- Favicon Tag for JPG -->
-<link rel="icon" type="image/jpeg" href="favicon.jpg">
+    <link rel="icon" type="image/png" href="favicon.jpg">
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Firebase SDK (Realtime Database Version) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -55,14 +55,14 @@
         /* Top Navbar */
         .top-navbar {
             background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 4px 24px; /* উপর-নিচের প্যাডিং ১২px থেকে কমিয়ে ৪px করে দেওয়া হয়েছে */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 4px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .brand-title h1 {
@@ -74,13 +74,12 @@
             color: var(--text-main);
         }
 
-        /* Logo Styling */
         .brand-logo {
             height: 90px;
             width: auto;
             object-fit: contain;
             display: block;
-            mix-blend-mode: screen; /* ছবির কালো ব্যাকগ্রাউন্ড স্মুথলি ব্লেন্ড হওয়ার জন্য */
+            mix-blend-mode: screen;
         }
 
         .brand-title h1 span {
@@ -118,13 +117,8 @@
             transition: 0.2s ease;
         }
 
-        .controller-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .controller-btn.active {
-            background: var(--accent-green);
-        }
+        .controller-btn:hover { background: var(--accent-hover); }
+        .controller-btn.active { background: var(--accent-green); }
 
         /* Admin Management Panel */
         .admin-panel {
@@ -137,9 +131,7 @@
             gap: 16px;
         }
 
-        .admin-panel.active {
-            display: flex;
-        }
+        .admin-panel.active { display: flex; }
 
         .admin-panel-header {
             font-size: 1rem;
@@ -205,7 +197,7 @@
             align-items: center;
         }
 
-        /* Stats Donut Cards Row */
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -222,7 +214,6 @@
             gap: 16px;
         }
 
-        /* SVG Donut Chart Styling */
         .donut-chart {
             width: 54px;
             height: 54px;
@@ -254,7 +245,7 @@
             margin-top: 2px;
         }
 
-        /* Controls Panel */
+        /* Controls */
         .controls-row {
             display: grid;
             grid-template-columns: 1fr 240px;
@@ -331,6 +322,14 @@
             transition: all 0.2s ease;
         }
 
+        /* Fade/Transparency effect for Approved & Cancelled slots */
+        .slot-card.faded-slot {
+            opacity: 0.45;
+        }
+        .slot-card.faded-slot:hover {
+            opacity: 0.85;
+        }
+
         .slot-card.active-reveal {
             border-color: rgba(0, 117, 255, 0.4);
         }
@@ -376,6 +375,7 @@
         .status-revealed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
         .status-submitted { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
         .status-locked { background: rgba(138, 148, 166, 0.1); color: var(--text-muted); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
 
         .btn-action {
             background: var(--accent-blue);
@@ -390,6 +390,7 @@
             align-items: center;
             gap: 6px;
             transition: 0.2s;
+            text-decoration: none;
         }
 
         .btn-action:hover { background: var(--accent-hover); }
@@ -425,12 +426,10 @@
             <input type="text" id="newDesignerName" placeholder="Enter new designer full name...">
             <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
         </div>
-        <div class="designer-list-tags" id="designerTagList">
-            <!-- Designer Tags rendered dynamically -->
-        </div>
+        <div class="designer-list-tags" id="designerTagList"></div>
     </div>
 
-    <!-- UI Inspired Stat Cards -->
+    <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card">
             <svg class="donut-chart" viewBox="0 0 36 36">
@@ -538,7 +537,6 @@
     let isControllerMode = false;
     let slotStates = {};
 
-    // Sync Designers List from Firebase
     db.ref("designers_list").on("value", (snapshot) => {
         const val = snapshot.val();
         if (val) {
@@ -551,7 +549,6 @@
         renderSchedule();
     });
 
-    // Sync Slots from Firebase
     db.ref("schedule_slots").on("value", (snapshot) => {
         slotStates = snapshot.val() || {};
         renderSchedule();
@@ -625,7 +622,6 @@
 
     function generateMonthSchedule(year, monthIndex, minDateDay = 1) {
         if (DESIGNERS.length === 0) return [];
-        
         const slots = [];
         const date = new Date(year, monthIndex, 1);
         let designerIdx = 0;
@@ -634,7 +630,6 @@
             const day = date.getDay();
             if (day === 5 || day === 6) {
                 const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
-                
                 if (date.getDate() >= minDateDay) {
                     slots.push({
                         id: `${year}-${monthIndex}-${date.getDate()}`,
@@ -650,17 +645,92 @@
         return slots;
     }
 
-    function markSubmitted(slotId) {
-        const userPass = prompt("Enter Password to Submit Poster:");
-        if (userPass === ADMIN_PASSWORD) {
-            db.ref("schedule_slots/" + slotId).update({ submitted: true, approved: false });
-        } else if (userPass !== null) {
-            alert("Incorrect Password!");
-        }
+    // 🚀 Direct Base64 Conversion & Firebase Upload (Zero External API Errors)
+    function triggerFileUpload(slotId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/png, image/jpeg, image/webp';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const userPass = prompt("Enter Password to Confirm Upload:");
+            if (userPass !== ADMIN_PASSWORD) {
+                if (userPass !== null) alert("Incorrect Password! Upload Cancelled.");
+                return;
+            }
+
+            alert("Processing Image... Please wait!");
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Compress and convert into standard Base64 Data URL
+                    const base64Url = canvas.toDataURL('image/jpeg', 0.90);
+
+                    try {
+                        await db.ref("schedule_slots/" + slotId).update({
+                            submitted: true,
+                            approved: false,
+                            posterUrl: base64Url
+                        });
+                        alert("✅ Poster Uploaded & Saved Successfully!");
+                    } catch (err) {
+                        console.error("Firebase Save Error:", err);
+                        alert("❌ Error saving image to database!");
+                    }
+                };
+                img.onerror = () => {
+                    alert("❌ Invalid image file!");
+                };
+                img.src = event.target.result;
+            };
+            reader.onerror = () => {
+                alert("❌ Failed to read file!");
+            };
+            reader.readAsDataURL(file);
+        };
+
+        input.click();
     }
 
     function markApproved(slotId) {
-        db.ref("schedule_slots/" + slotId).update({ submitted: true, approved: true });
+        db.ref("schedule_slots/" + slotId).update({ approved: true });
+    }
+
+    // 🚀 Direct Auto Download Without New Tab
+    async function downloadImage(url, designerName) {
+        try {
+            alert("Downloading file... Please wait!");
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("Download Error:", err);
+            // Fallback for direct data urls
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     }
 
     function renderSchedule() {
@@ -668,46 +738,75 @@
         grid.innerHTML = '';
 
         const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
         const monthOffset = document.getElementById('monthSelect').value === 'next' ? 1 : 0;
         const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
         
-        const startFromDay = (monthOffset === 0 && targetDate.getMonth() === 6) ? 23 : 1;
+        const targetAug8 = new Date(2026, 7, 8);
+        const unlockLimit = now >= targetAug8 ? 6 : 3;
+        
+        const startFromDay = (monthOffset === 0 && targetDate.getMonth() === 7) ? 8 : 1;
         const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth(), startFromDay);
 
+        let upcomingSlotsCount = 0;
         let completedCount = 0;
         let pendingCount = 0;
 
-        schedule.forEach((slot, idx) => {
-            const state = slotStates[slot.id] || { submitted: false, approved: false };
+        schedule.forEach((slot) => {
+            const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null };
 
             if (state.approved) completedCount++;
             else if (state.submitted) pendingCount++;
 
-            let isUnlocked = idx === 0 || (slotStates[schedule[idx - 1].id] && slotStates[schedule[idx - 1].id].approved);
+            const slotDate = new Date(slot.date);
+            slotDate.setHours(0, 0, 0, 0);
+
+            const isPast = slotDate < now;
+            const isAutoCancelled = isPast && !state.submitted && !state.approved;
+
+            let isUnlocked = false;
+            if (!isPast && upcomingSlotsCount < unlockLimit) {
+                isUnlocked = true;
+                upcomingSlotsCount++;
+            }
 
             const dateString = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
             let statusMarkup = '';
             let actionMarkup = '';
+            let cardExtraClass = '';
 
-            if (isUnlocked) {
+            if (isAutoCancelled) {
+                statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
+                cardExtraClass = 'faded-slot';
+            } else if (isUnlocked || (isPast && (state.submitted || state.approved))) {
                 if (state.approved) {
                     statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
+                    cardExtraClass = 'faded-slot';
+                    
+                    if (isControllerMode && state.posterUrl) {
+                        actionMarkup = `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>`;
+                    }
                 } else if (state.submitted) {
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
-                    if (isControllerMode) {
-                        actionMarkup = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
+                    
+                    let viewBtn = (isControllerMode && state.posterUrl) ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>` : '';
+                    let approveBtn = isControllerMode ? `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>` : '';
+                    
+                    if (viewBtn || approveBtn) {
+                        actionMarkup = `<div style="display:flex; gap:6px;">${viewBtn}${approveBtn}</div>`;
                     }
                 } else {
                     statusMarkup = `<span class="status-badge status-revealed">Active Slot</span>`;
-                    actionMarkup = `<button class="btn-action" onclick="markSubmitted('${slot.id}')"><i data-lucide="upload"></i> Submit</button>`;
+                    actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload Poster</button>`;
                 }
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
             }
 
             grid.innerHTML += `
-                <div class="slot-card ${isUnlocked ? 'active-reveal' : ''}">
+                <div class="slot-card ${(isUnlocked || state.submitted || state.approved) ? 'active-reveal' : ''} ${cardExtraClass}">
                     <div class="card-top">
                         <span class="slot-date">
                             <i data-lucide="calendar" style="width: 14px; color: var(--accent-blue);"></i>
@@ -715,7 +814,7 @@
                         </span>
                         <span>${slot.dayName}</span>
                     </div>
-                    <div class="designer-name">${isUnlocked ? slot.assignedDesigner : '••••••••••••'}</div>
+                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved || isPast) ? slot.assignedDesigner : '••••••••••••'}</div>
                     <div class="card-bottom">
                         ${statusMarkup}
                         ${actionMarkup}
@@ -724,7 +823,6 @@
             `;
         });
 
-        // Update Stat Donut Charts
         const total = schedule.length;
         document.getElementById('statTotal').innerText = total;
         document.getElementById('statCompleted').innerText = completedCount;
@@ -749,7 +847,7 @@
         }
 
         const now = new Date();
-        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth(), 23);
+        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth(), 8);
         const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1, 1);
         const fullSchedule = [...currentSchedule, ...nextSchedule];
 
