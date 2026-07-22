@@ -520,7 +520,7 @@
     <!-- Admin Management Panel (Visible for Jihad) -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-panel-header">
-            <i data-lucide="shield-alert"></i> Owner Control Panel (Jihad)
+            <i data-lucide="shield-alert"></i> Controller Control Panel
         </div>
         <div class="add-user-box">
             <input type="text" id="newDesignerName" placeholder="Enter new designer full name...">
@@ -800,7 +800,7 @@
             adminPanel.classList.remove('active');
         } else if (currentUser.role === 'owner') {
             btn.className = "controller-btn active-owner";
-            btn.innerHTML = `<i data-lucide="shield-check"></i> Jihad (Owner)`;
+            btn.innerHTML = `<i data-lucide="shield-check"></i> Jihad (Controll)`;
             adminPanel.classList.add('active');
         } else if (currentUser.role === 'assigner') {
             btn.className = "controller-btn active-assigner";
