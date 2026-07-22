@@ -4,497 +4,563 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Designer Slot Distribution & Management System</title>
-    <link rel="icon" type="image/png" href="favicon.jpg">
-    
+    <link id="faviconLink" rel="icon" type="image/png" href="favicon.jpg">
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
+    <!-- Type system: Space Grotesk (display), Inter (UI), JetBrains Mono (data/time) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg-dark: #0b0e14;
-            --card-bg: #151a23;
-            --card-border: #212936;
-            --accent-blue: #0075ff;
-            --accent-hover: #0056b3;
-            --accent-orange: #ff9f43;
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-red: #ef4444;
-            --text-main: #ffffff;
-            --text-muted: #8a94a6;
+            /* Palette */
+            --void: #090b10;
+            --panel: #12161f;
+            --panel-hi: #171c28;
+            --line: #232a38;
+            --line-soft: #1b212c;
+            --signal: #2f7bff;
+            --signal-dim: rgba(47, 123, 255, 0.14);
+            --signal-hover: #4d8dff;
+            --amber: #f5a524;
+            --amber-dim: rgba(245, 165, 36, 0.14);
+            --emerald: #22c581;
+            --emerald-dim: rgba(34, 197, 129, 0.14);
+            --violet: #8b6bf0;
+            --violet-dim: rgba(139, 107, 240, 0.16);
+            --coral: #f2555a;
+            --coral-dim: rgba(242, 85, 90, 0.14);
+            --ink: #f3f5f8;
+            --fog: #8993a6;
+            --fog-dim: #5b6478;
+
+            --r-sm: 8px;
+            --r-md: 12px;
+            --r-lg: 16px;
+            --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.55);
+            --shadow-pop: 0 20px 60px -12px rgba(0,0,0,0.7);
+
+            --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-ui); }
+
+        html { scrollbar-color: #2a3242 transparent; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a3242; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a4356; }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background:
+                radial-gradient(1100px 480px at 12% -8%, rgba(47,123,255,0.10), transparent 60%),
+                radial-gradient(900px 420px at 100% 0%, rgba(139,107,240,0.08), transparent 55%),
+                var(--void);
+            color: var(--ink);
             min-height: 100vh;
-            padding: 16px 8px;
+            padding: 28px 16px 60px;
             display: flex;
             justify-content: center;
             overflow-x: hidden;
         }
 
+        button, input { font-family: inherit; }
+
+        :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 6px; }
+
         .app-container {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1120px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 22px;
             margin: 0 auto;
+            animation: riseIn 0.5s ease both;
         }
 
-        /* Top Navbar */
+        @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+        }
+
+        /* ---------- Navbar ---------- */
         .top-navbar {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 12px 16px;
+            background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .brand-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+        .brand-mark { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
+        .brand-logo { height: 40px; width: 40px; object-fit: contain; display: block; border-radius: 8px; }
+        .brand-logo-fallback {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--signal), var(--violet));
+            display: none; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: #fff;
         }
 
         .brand-title h1 {
-            font-size: 1.2rem;
+            font-family: var(--font-display);
+            font-size: 1.15rem;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-main);
+            letter-spacing: -0.01em;
+            color: var(--ink);
+            min-width: 0;
+            overflow-wrap: break-word;
         }
-
-        .brand-logo {
-            height: 45px;
-            width: auto;
-            object-fit: contain;
-            display: block;
-            mix-blend-mode: screen;
-        }
-
-        .brand-title h1 span {
-            color: var(--accent-blue);
-        }
+        .brand-title h1 .brand-sub { color: var(--fog); font-weight: 500; font-size: 0.95rem; }
 
         .system-time {
-            font-family: monospace;
-            color: var(--accent-blue);
-            background: rgba(0, 117, 255, 0.1);
-            padding: 6px 14px;
+            font-family: var(--font-mono);
+            color: var(--signal-hover);
+            background: var(--signal-dim);
+            border: 1px solid rgba(47,123,255,0.25);
+            padding: 7px 14px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
-        .role-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .role-bar { display: flex; align-items: center; gap: 8px; }
 
         .controller-btn {
-            background: var(--accent-blue);
+            background: var(--signal);
             color: #fff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 9px 16px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: 0.2s ease;
+            gap: 7px;
+            transition: background 0.15s ease, transform 0.1s ease;
         }
+        .controller-btn i { width: 15px; height: 15px; }
+        .controller-btn:hover { background: var(--signal-hover); }
+        .controller-btn:active { transform: scale(0.97); }
+        .controller-btn.active-owner { background: var(--violet); }
+        .controller-btn.active-owner:hover { background: #9a7cf5; }
+        .controller-btn.active-assigner { background: var(--amber); color: #201200; }
+        .controller-btn.active-assigner:hover { background: #ffb648; }
 
-        .controller-btn:hover { background: var(--accent-hover); }
-        .controller-btn.active-owner { background: var(--accent-purple); }
-        .controller-btn.active-assigner { background: var(--accent-orange); }
-
-        /* Admin Management Panel */
+        /* ---------- Admin Panel ---------- */
         .admin-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-blue);
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--panel);
+            border: 1px solid rgba(47,123,255,0.35);
+            border-radius: var(--r-lg);
+            padding: 22px;
             display: none;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
+            box-shadow: var(--shadow-card);
+            animation: riseIn 0.25s ease both;
         }
-
         .admin-panel.active { display: flex; }
 
         .admin-panel-header {
-            font-size: 1rem;
+            font-family: var(--font-display);
+            font-size: 0.95rem;
             font-weight: 700;
-            color: var(--accent-blue);
+            color: var(--signal-hover);
             display: flex;
             align-items: center;
             gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
+        .admin-panel-header i { width: 16px; height: 16px; }
 
-        .add-user-box {
-            display: flex;
-            gap: 10px;
-        }
-
+        .add-user-box { display: flex; gap: 10px; }
         .add-user-box input {
             flex: 1;
-            background: var(--bg-dark);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: var(--text-main);
+            background: var(--void);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 11px 14px;
+            color: var(--ink);
             outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.15s ease;
+            min-width: 0;
         }
+        .add-user-box input:focus { border-color: var(--signal); }
 
         .btn-add {
-            background: var(--accent-blue);
+            background: var(--signal);
             color: #fff;
             border: none;
             padding: 10px 18px;
-            border-radius: 8px;
+            border-radius: var(--r-sm);
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: background 0.15s ease;
+            white-space: nowrap;
         }
+        .btn-add:hover { background: var(--signal-hover); }
+        .btn-add i { width: 15px; height: 15px; }
 
-        .designer-list-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-        }
+        .designer-list-tags { display: flex; flex-wrap: wrap; gap: 9px; }
 
         .designer-tag {
-            background: var(--bg-dark);
-            border: 1px solid var(--card-border);
+            background: var(--void);
+            border: 1px solid var(--line);
             border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.85rem;
+            padding: 6px 8px 6px 14px;
+            font-size: 0.83rem;
             display: flex;
             align-items: center;
             gap: 8px;
+            max-width: 100%;
         }
+        .designer-tag span { overflow-wrap: anywhere; }
 
         .btn-delete-tag {
-            color: var(--accent-red);
+            color: var(--fog);
             cursor: pointer;
             background: transparent;
             border: none;
             display: flex;
             align-items: center;
+            padding: 4px;
+            border-radius: 50%;
+            transition: color 0.15s ease, background 0.15s ease;
+            flex-shrink: 0;
         }
+        .btn-delete-tag:hover { color: var(--coral); background: var(--coral-dim); }
+        .btn-delete-tag i { width: 13px; height: 13px; }
 
-        /* Admin Logs Box */
+        .empty-hint { color: var(--fog-dim); font-size: 0.83rem; font-style: italic; padding: 4px 2px; }
+
         .logs-box {
-            background: var(--bg-dark);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 12px;
-            max-height: 150px;
+            background: var(--void);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 6px 12px;
+            max-height: 160px;
             overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.78rem;
-            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            color: var(--fog);
             display: flex;
             flex-direction: column;
-            gap: 6px;
         }
         .log-item {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 4px;
+            border-bottom: 1px solid var(--line-soft);
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: baseline;
+            flex-wrap: wrap;
         }
+        .log-item:last-child { border-bottom: none; }
+        .log-item .log-tag { color: var(--signal-hover); font-weight: 600; white-space: nowrap; }
+        .log-item .log-time { font-size: 0.68rem; opacity: 0.65; white-space: nowrap; }
+        .log-item .log-detail { flex: 1; color: var(--fog); min-width: 140px; }
 
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-        }
+        /* ---------- Stats ---------- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
         .stat-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
             padding: 18px;
             display: flex;
             align-items: center;
             gap: 16px;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.15s ease, transform 0.15s ease;
         }
+        .stat-card:hover { border-color: #303a4d; transform: translateY(-1px); }
 
-        .donut-chart {
-            width: 54px;
-            height: 54px;
-            transform: rotate(-90deg);
-        }
+        .donut-chart { width: 52px; height: 52px; transform: rotate(-90deg); flex-shrink: 0; }
+        .donut-chart circle { fill: none; stroke-width: 3.4; transition: stroke-dasharray 0.5s ease; }
+        .donut-bg { stroke: var(--line); }
+        .donut-fill-blue { stroke: var(--signal); stroke-linecap: round; }
+        .donut-fill-green { stroke: var(--emerald); stroke-linecap: round; }
+        .donut-fill-orange { stroke: var(--amber); stroke-linecap: round; }
+        .donut-fill-purple { stroke: var(--violet); stroke-linecap: round; }
 
-        .donut-chart circle {
-            fill: none;
-            stroke-width: 3.8;
-        }
+        .stat-info h4 { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--fog); letter-spacing: 0.06em; }
+        .stat-info .stat-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--ink); margin-top: 2px; line-height: 1; }
 
-        .donut-bg { stroke: #212936; }
-        .donut-fill-blue { stroke: var(--accent-blue); stroke-linecap: round; }
-        .donut-fill-green { stroke: var(--accent-green); stroke-linecap: round; }
-        .donut-fill-orange { stroke: var(--accent-orange); stroke-linecap: round; }
-        .donut-fill-purple { stroke: var(--accent-purple); stroke-linecap: round; }
-
-        .stat-info h4 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
-
-        .stat-info .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-top: 2px;
-        }
-
-        /* Controls */
-        .controls-row {
-            display: grid;
-            grid-template-columns: 1fr 240px;
-            gap: 16px;
-        }
-
-        @media (max-width: 640px) {
-            .controls-row { grid-template-columns: 1fr; }
-        }
+        /* ---------- Controls ---------- */
+        .controls-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; }
+        @media (max-width: 640px) { .controls-row { grid-template-columns: 1fr; } }
 
         .search-box {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 12px 14px;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: border-color 0.15s ease;
         }
+        .search-box:focus-within { border-color: var(--signal); }
+        .search-box i { color: var(--fog); width: 17px; height: 17px; flex-shrink: 0; }
+        .search-box input { background: transparent; border: none; outline: none; color: var(--ink); width: 100%; font-size: 0.9rem; min-width: 0; }
+        .search-box input::placeholder { color: var(--fog-dim); }
 
-        .search-box input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-main);
-            width: 100%;
-            font-size: 0.9rem;
+        .search-clear {
+            background: transparent; border: none; color: var(--fog); cursor: pointer;
+            display: none; align-items: center; padding: 3px; border-radius: 50%; flex-shrink: 0;
         }
+        .search-clear.visible { display: flex; }
+        .search-clear:hover { color: var(--ink); background: var(--line-soft); }
+        .search-clear i { width: 14px; height: 14px; }
 
-        /* Custom Dark Theme Dropdown */
-        .custom-dropdown {
-            position: relative;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            user-select: none;
-            cursor: pointer;
-        }
-
-        .dropdown-select-btn {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
+        .custom-dropdown { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); user-select: none; }
+        .dropdown-select-btn { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; color: var(--ink); cursor: pointer; gap: 8px; }
+        .dropdown-select-btn .dd-left { display: flex; align-items: center; gap: 8px; }
+        .dropdown-select-btn i { color: var(--fog); width: 16px; height: 16px; }
+        #dropdownChevron { transition: transform 0.15s ease; }
+        .custom-dropdown[aria-expanded="true"] #dropdownChevron { transform: rotate(180deg); }
 
         .dropdown-options {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            width: 100%;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            display: none;
-            flex-direction: column;
-            z-index: 100;
-            overflow: hidden;
+            position: absolute; top: calc(100% + 6px); left: 0; width: 100%;
+            background: var(--panel-hi); border: 1px solid var(--line); border-radius: var(--r-md);
+            box-shadow: var(--shadow-pop); display: none; flex-direction: column; z-index: 100; overflow: hidden;
         }
-
-        .dropdown-options.open {
-            display: flex;
-        }
-
-        .dropdown-option {
-            padding: 12px 16px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            transition: 0.15s ease;
-        }
-
-        .dropdown-option:hover {
-            background: rgba(0, 117, 255, 0.1);
-            color: var(--text-main);
-        }
-
-        .dropdown-option.selected {
-            color: var(--accent-blue);
-            font-weight: 600;
-        }
+        .dropdown-options.open { display: flex; }
+        .dropdown-option { padding: 11px 16px; font-size: 0.88rem; color: var(--fog); cursor: pointer; transition: background 0.12s ease, color 0.12s ease; }
+        .dropdown-option:hover { background: var(--signal-dim); color: var(--ink); }
+        .dropdown-option.selected { color: var(--signal-hover); font-weight: 600; }
 
         .lookup-result {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-blue);
-            border-radius: 10px;
-            padding: 14px 18px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--panel); border: 1px solid var(--signal); border-radius: var(--r-md);
+            padding: 14px 18px; display: none; justify-content: space-between; align-items: center;
+            gap: 10px; flex-wrap: wrap; animation: riseIn 0.2s ease both;
         }
-
         .lookup-result.active { display: flex; }
+        .lookup-result strong { font-family: var(--font-display); }
+        .lookup-result p { font-size: 0.83rem; color: var(--fog); margin-top: 2px; }
+        .lookup-countdown { font-family: var(--font-mono); font-weight: 700; color: var(--amber); white-space: nowrap; }
 
-        /* Schedule Grid */
+        /* ---------- Schedule Grid ---------- */
         .grid-header {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--fog);
+            text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px;
         }
+        .grid-header i { width: 15px; height: 15px; }
 
-        .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
+        .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
 
         .slot-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            position: relative;
-            transition: all 0.2s ease;
+            background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+            padding: 18px; display: flex; flex-direction: column; gap: 14px; position: relative;
+            box-shadow: var(--shadow-card); transition: border-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+            min-width: 0;
         }
+        .slot-card:hover { transform: translateY(-2px); }
+        .slot-card.faded-slot { opacity: 0.5; }
+        .slot-card.faded-slot:hover { opacity: 0.9; }
+        .slot-card.active-reveal { border-color: rgba(47,123,255,0.4); }
+        .slot-card.is-live { border-color: rgba(34,197,129,0.45); }
 
-        .slot-card.faded-slot {
-            opacity: 0.45;
-        }
-        .slot-card.faded-slot:hover {
-            opacity: 0.85;
-        }
+        .card-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--fog); flex-wrap: wrap; gap: 4px; }
+        .slot-date { font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+        .slot-date i { width: 14px; height: 14px; color: var(--signal-hover); }
 
-        .slot-card.active-reveal {
-            border-color: rgba(0, 117, 255, 0.4);
+        /* Ticket-stub perforation divider */
+        .ticket-divider { position: relative; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); margin: 0 -18px; }
+        .ticket-divider::before, .ticket-divider::after {
+            content: ""; position: absolute; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; background: var(--void); border-radius: 50%;
         }
+        .ticket-divider::before { left: -8px; }
+        .ticket-divider::after { right: -8px; }
 
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 10px;
-        }
-
-        .slot-date {
-            font-weight: 600;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .designer-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
+        .designer-name { font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; word-break: break-word; }
+        .designer-name .lock-icon { color: var(--fog-dim); width: 16px; height: 16px; flex-shrink: 0; }
 
         .topic-display {
-            font-size: 0.82rem;
-            color: var(--accent-orange);
-            background: rgba(255, 159, 67, 0.1);
-            padding: 6px 10px;
-            border-radius: 6px;
-            border-left: 3px solid var(--accent-orange);
-            word-break: break-all;
-            overflow-wrap: break-word;
-            white-space: pre-wrap;
+            font-size: 0.82rem; color: var(--amber); background: var(--amber-dim); padding: 8px 10px;
+            border-radius: var(--r-sm); border-left: 3px solid var(--amber);
+            word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap;
+            display: flex; align-items: flex-start; gap: 6px;
         }
+        .topic-display i { width: 13px; height: 13px; margin-top: 2px; flex-shrink: 0; }
+        .topic-display.editable { cursor: pointer; transition: filter 0.15s ease; }
+        .topic-display.editable:hover { filter: brightness(1.2); }
+        .topic-display.unassigned { color: var(--fog); background: var(--line-soft); border-left-color: var(--fog-dim); }
 
-        .card-bottom {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            flex-wrap: wrap; /* Fixed: prevents buttons from overflowing outside card boundaries */
-        }
+        .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 
         .status-badge {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 600;
+            padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+            display: inline-flex; align-items: center;
+        }
+        .status-approved { background: var(--emerald-dim); color: var(--emerald); }
+        .status-active { background: var(--signal-dim); color: var(--signal-hover); }
+        .status-submitted { background: var(--amber-dim); color: var(--amber); }
+        .status-locked { background: var(--line-soft); color: var(--fog); }
+        .status-cancelled { background: var(--coral-dim); color: var(--coral); }
+
+        /* Live pulse indicator for open/active slots */
+        .pulse-dot {
+            display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+            background: var(--emerald); margin-right: 6px; flex-shrink: 0;
+            box-shadow: 0 0 0 0 rgba(34,197,129,0.6);
+            animation: pulseGlow 1.7s ease-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%   { box-shadow: 0 0 0 0 rgba(34,197,129,0.55); }
+            70%  { box-shadow: 0 0 0 8px rgba(34,197,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,129,0); }
         }
 
-        .status-revealed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-        .status-submitted { background: rgba(255, 159, 67, 0.15); color: var(--accent-orange); }
-        .status-locked { background: rgba(138, 148, 166, 0.1); color: var(--text-muted); }
-        .status-cancelled { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+        .action-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .btn-action {
-            background: var(--accent-blue);
-            border: none;
-            color: #fff;
-            padding: 6px 12px;
+            background: var(--signal); border: none; color: #fff; padding: 7px 12px; border-radius: var(--r-sm);
+            font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;
+            transition: background 0.15s ease, transform 0.1s ease; text-decoration: none; white-space: nowrap;
+        }
+        .btn-action i { width: 13px; height: 13px; }
+        .btn-action:hover { background: var(--signal-hover); }
+        .btn-action:active { transform: scale(0.96); }
+        .btn-approve { background: var(--emerald); }
+        .btn-approve:hover { background: #2ee096; }
+        .btn-download { background: var(--violet); }
+        .btn-download:hover { background: #9a7cf5; }
+        .btn-danger { background: var(--coral); }
+        .btn-danger:hover { background: #ff6b70; }
+
+        .locked-note { font-size: 0.78rem; color: var(--fog-dim); display: flex; align-items: center; gap: 6px; }
+        .locked-note i { width: 13px; height: 13px; flex-shrink: 0; }
+
+        .empty-state {
+            grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--fog);
+            border: 1px dashed var(--line); border-radius: var(--r-lg);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .empty-state i { width: 34px; height: 34px; color: var(--fog-dim); }
+        .empty-state strong { color: var(--ink); font-family: var(--font-display); font-size: 1rem; }
+
+        .skeleton-card {
+            background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+            padding: 18px; height: 168px; display: flex; flex-direction: column; gap: 14px;
+            overflow: hidden; position: relative;
+        }
+        .skeleton-bar {
             border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: 0.2s;
-            text-decoration: none;
-            white-space: nowrap; /* Keeps button text inline */
+            background: linear-gradient(90deg, var(--line-soft) 25%, #232a38 37%, var(--line-soft) 63%);
+            background-size: 400% 100%; animation: shimmer 1.4s ease infinite;
         }
+        @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
-        .btn-action:hover { background: var(--accent-hover); }
-        .btn-approve { background: var(--accent-green); }
-        .btn-approve:hover { background: #0d9668; }
-
-        /* Progress Bar Animation */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* ---------- Modals ---------- */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(5,7,11,0.72);
+            backdrop-filter: blur(6px); z-index: 1000; justify-content: center; align-items: center; padding: 16px;
         }
-        .spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid var(--card-border);
-            border-top: 3px solid var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: var(--panel-hi); border: 1px solid var(--line); padding: 26px; border-radius: var(--r-lg);
+            width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px;
+            box-shadow: var(--shadow-pop); animation: popIn 0.18s ease both;
+        }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .modal-box.accent-blue { border-color: rgba(47,123,255,0.4); }
+        .modal-box.accent-amber { border-color: rgba(245,165,36,0.4); }
+        .modal-box.accent-coral { border-color: rgba(242,85,90,0.4); }
+
+        .modal-title { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.05rem; display: flex; align-items: center; gap: 9px; }
+        .modal-title i { width: 19px; height: 19px; }
+        .modal-subtitle { font-size: 0.83rem; color: var(--fog); margin-top: -6px; }
+        .modal-message { font-size: 0.9rem; color: var(--fog); line-height: 1.5; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.78rem; color: var(--fog); font-weight: 500; }
+        .form-group input {
+            background: var(--void); border: 1px solid var(--line); border-radius: var(--r-sm);
+            padding: 11px 14px; color: var(--ink); outline: none; width: 100%; font-size: 0.9rem;
+            transition: border-color 0.15s ease;
+        }
+        .form-group input:focus { border-color: var(--signal); }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; flex-wrap: wrap; }
+
+        .btn-modal { border: none; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: background 0.15s ease, transform 0.1s ease; }
+        .btn-modal:active { transform: scale(0.97); }
+        .btn-modal-ghost { background: transparent; border: 1px solid var(--line); color: var(--fog); }
+        .btn-modal-ghost:hover { color: var(--ink); border-color: #3a4356; }
+        .btn-modal-primary { background: var(--signal); color: #fff; }
+        .btn-modal-primary:hover { background: var(--signal-hover); }
+        .btn-modal-amber { background: var(--amber); color: #201200; }
+        .btn-modal-amber:hover { background: #ffb648; }
+        .btn-modal-danger { background: var(--coral); color: #fff; }
+        .btn-modal-danger:hover { background: #ff6b70; }
+
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top: 3px solid var(--signal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast-stack {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1200;
+            display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 380px; padding: 0 16px;
+        }
+        .toast {
+            background: var(--panel-hi); border: 1px solid var(--line); border-left: 3px solid var(--signal);
+            border-radius: var(--r-sm); padding: 12px 14px; font-size: 0.85rem; color: var(--ink);
+            display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-pop); animation: toastIn 0.2s ease both;
+        }
+        .toast.success { border-left-color: var(--emerald); }
+        .toast.error { border-left-color: var(--coral); }
+        .toast i { width: 16px; height: 16px; flex-shrink: 0; }
+        .toast.success i { color: var(--emerald); }
+        .toast.error i { color: var(--coral); }
+        .toast.info i { color: var(--signal-hover); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .toast.leaving { animation: toastOut 0.18s ease both; }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+
+        /* ---------- Mobile responsiveness ---------- */
+        @media (max-width: 620px) {
+            body { padding: 18px 10px 50px; }
+            .top-navbar { flex-direction: column; align-items: stretch; text-align: center; }
+            .brand-title { justify-content: center; }
+            .brand-title h1 { font-size: 1.05rem; }
+            .system-time { align-self: center; }
+            .role-bar { justify-content: center; }
+            .add-user-box { flex-direction: column; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .schedule-grid { grid-template-columns: 1fr; }
+            .modal-box { padding: 20px; }
+            .lookup-result { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 380px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .designer-name { font-size: 1rem; }
+            .modal-box { max-width: 100%; }
         }
     </style>
 </head>
@@ -504,10 +570,12 @@
     <!-- Navbar -->
     <header class="top-navbar">
         <div class="brand-title">
-            <h1>
-                <img src="logo.png" alt="UYFSR Logo" class="brand-logo">
-                Schedule & Submission<span>Dashboard</span>
-            </h1>
+            <div class="brand-mark">
+                <img src="logo.png" alt="UYFSR Logo" class="brand-logo" id="brandLogoImg"
+                     onerror="this.style.display='none'; document.getElementById('brandLogoFallback').style.display='flex';">
+                <div class="brand-logo-fallback" id="brandLogoFallback">UY</div>
+            </div>
+            <h1>Schedule &amp; Submission <span class="brand-sub">Dashboard</span></h1>
         </div>
         <div class="system-time" id="systemClock">00:00:00 UTC</div>
         <div class="role-bar">
@@ -517,22 +585,18 @@
         </div>
     </header>
 
-    <!-- Admin Management Panel (Visible for taki) -->
+    <!-- Admin Management Panel -->
     <div id="adminPanel" class="admin-panel">
-        <div class="admin-panel-header">
-            <i data-lucide="shield-alert"></i> Controller Control Panel
-        </div>
+        <div class="admin-panel-header"><i data-lucide="shield-alert"></i> Controller Control Panel</div>
         <div class="add-user-box">
-            <input type="text" id="newDesignerName" placeholder="Enter new designer full name...">
+            <input type="text" id="newDesignerName" placeholder="Enter new designer full name..." onkeydown="if(event.key==='Enter') addDesigner()">
             <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
         </div>
         <div class="designer-list-tags" id="designerTagList"></div>
 
-        <div class="admin-panel-header" style="margin-top: 10px;">
-            <i data-lucide="activity"></i> System Audit Logs
-        </div>
+        <div class="admin-panel-header" style="margin-top: 4px;"><i data-lucide="activity"></i> System Audit Logs</div>
         <div class="logs-box" id="adminLogsList">
-            <div class="log-item">Loading logs...</div>
+            <div class="log-item"><span class="log-detail">Loading logs...</span></div>
         </div>
     </div>
 
@@ -543,131 +607,121 @@
                 <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
                 <circle class="donut-fill-blue" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
             </svg>
-            <div class="stat-info">
-                <h4>Total Slots</h4>
-                <div class="stat-value" id="statTotal">0</div>
-            </div>
+            <div class="stat-info"><h4>Total Slots</h4><div class="stat-value" id="statTotal">0</div></div>
         </div>
-
         <div class="stat-card">
             <svg class="donut-chart" viewBox="0 0 36 36">
                 <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
                 <circle class="donut-fill-green" id="donutCompleted" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
             </svg>
-            <div class="stat-info">
-                <h4>Completed</h4>
-                <div class="stat-value" id="statCompleted">0</div>
-            </div>
+            <div class="stat-info"><h4>Completed</h4><div class="stat-value" id="statCompleted">0</div></div>
         </div>
-
         <div class="stat-card">
             <svg class="donut-chart" viewBox="0 0 36 36">
                 <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
                 <circle class="donut-fill-orange" id="donutPending" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
             </svg>
-            <div class="stat-info">
-                <h4>Pending Review</h4>
-                <div class="stat-value" id="statPending">0</div>
-            </div>
+            <div class="stat-info"><h4>Pending Review</h4><div class="stat-value" id="statPending">0</div></div>
         </div>
-
         <div class="stat-card">
             <svg class="donut-chart" viewBox="0 0 36 36">
                 <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
                 <circle class="donut-fill-purple" id="donutRemaining" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
             </svg>
-            <div class="stat-info">
-                <h4>Remaining</h4>
-                <div class="stat-value" id="statRemaining">0</div>
-            </div>
+            <div class="stat-info"><h4>Remaining</h4><div class="stat-value" id="statRemaining">0</div></div>
         </div>
     </div>
 
     <!-- Controls -->
     <div class="controls-row">
         <div class="search-box">
-            <i data-lucide="search" style="color: var(--text-muted); width: 18px;"></i>
-            <input type="text" id="designerSearch" placeholder="Search designer assignment..." oninput="handleSearch()">
+            <i data-lucide="search"></i>
+            <input type="text" id="designerSearch" placeholder="Search designer assignment..." oninput="handleSearch()" aria-label="Search designer assignment">
+            <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" aria-label="Clear search"><i data-lucide="x"></i></button>
         </div>
 
-        <!-- Custom Dark Theme Month Selector -->
-        <div class="custom-dropdown" id="monthDropdown">
+        <div class="custom-dropdown" id="monthDropdown" role="listbox" tabindex="0" aria-expanded="false"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCustomDropdown();}">
             <div class="dropdown-select-btn" onclick="toggleCustomDropdown()">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="calendar" style="color: var(--text-muted); width: 16px;"></i>
-                    <span id="selectedMonthText">Current Active</span>
-                </div>
-                <i data-lucide="chevron-down" style="color: var(--text-muted); width: 16px;" id="dropdownChevron"></i>
+                <div class="dd-left"><i data-lucide="calendar"></i><span id="selectedMonthText">Current Active</span></div>
+                <i data-lucide="chevron-down" id="dropdownChevron"></i>
             </div>
             <div class="dropdown-options" id="dropdownOptions">
-                <div class="dropdown-option selected" onclick="selectMonth('current', 'Current Active')">Current Active</div>
-                <div class="dropdown-option" onclick="selectMonth('next', 'Next Month')">Next Month</div>
+                <div class="dropdown-option selected" role="option" onclick="selectMonth('current', 'Current Active')">Current Active</div>
+                <div class="dropdown-option" role="option" onclick="selectMonth('next', 'Next Month')">Next Month</div>
             </div>
         </div>
     </div>
 
     <!-- Search Overlay Box -->
     <div id="lookupResult" class="lookup-result">
-        <div>
-            <strong id="lookupName">Designer Name</strong>
-            <p id="lookupDate" style="font-size: 0.85rem; color: var(--text-muted);">Next Assignment: N/A</p>
-        </div>
-        <span id="lookupCountdown" style="font-weight: 700; color: var(--accent-orange);"></span>
+        <div><strong id="lookupName">Designer Name</strong><p id="lookupDate">Next Assignment: N/A</p></div>
+        <span id="lookupCountdown" class="lookup-countdown"></span>
     </div>
 
     <!-- Schedule Grid -->
-    <div class="grid-header">
-        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule & Submission
-    </div>
+    <div class="grid-header"><i data-lucide="layout-grid"></i> Live Schedule &amp; Submission</div>
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
 
-<!-- Unified Login Modal for taki & jarin -->
-<div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="lock" style="width: 20px; color: var(--accent-blue);"></i> Admin Access
+<!-- Unified Login Modal -->
+<div id="adminLoginModal" class="modal-overlay">
+    <div class="modal-box accent-blue">
+        <div class="modal-title"><i data-lucide="lock"></i> Admin Access</div>
+        <div class="form-group">
+            <label for="loginUsername">Username</label>
+            <input type="text" id="loginUsername" placeholder="Enter username..." onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()">
         </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username ..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyCredentials()">
         </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
-            <button onclick="closeLoginModal()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
-            <button onclick="verifyCredentials()" style="background: var(--accent-blue); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">Login</button>
+        <div class="modal-actions">
+            <button class="btn-modal btn-modal-ghost" onclick="closeLoginModal()">Cancel</button>
+            <button class="btn-modal btn-modal-primary" onclick="verifyCredentials()">Log in</button>
         </div>
     </div>
 </div>
 
-<!-- Assign Topic Modal (For jarin / taki) -->
-<div id="topicModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1050; justify-content: center; align-items: center;">
-    <div style="background: var(--card-bg); border: 1px solid var(--accent-orange); padding: 28px; border-radius: 14px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="edit-3" style="width: 20px; color: var(--accent-orange);"></i> Assign Design Topic
+<!-- Assign Topic Modal -->
+<div id="topicModal" class="modal-overlay">
+    <div class="modal-box accent-amber">
+        <div class="modal-title"><i data-lucide="edit-3"></i> Assign design topic</div>
+        <div id="topicModalSubtitle" class="modal-subtitle"></div>
+        <div class="form-group">
+            <input type="text" id="topicInput" placeholder="Enter design topic or details..." onkeydown="if(event.key==='Enter') saveAssignedTopic()">
         </div>
-        <div id="topicModalSubtitle" style="font-size: 0.82rem; color: var(--text-muted);"></div>
-        <input type="text" id="topicInput" placeholder="Enter design topic or details..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
-            <button onclick="closeTopicModal()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
-            <button onclick="saveAssignedTopic()" style="background: var(--accent-orange); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">Save Topic</button>
+        <div class="modal-actions">
+            <button class="btn-modal btn-modal-ghost" onclick="closeTopicModal()">Cancel</button>
+            <button class="btn-modal btn-modal-amber" onclick="saveAssignedTopic()">Save topic</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Action Modal -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-box accent-coral" id="confirmModalBox">
+        <div class="modal-title" id="confirmModalTitle"><i data-lucide="alert-triangle"></i> Please confirm</div>
+        <div class="modal-message" id="confirmModalMessage">Are you sure?</div>
+        <div class="modal-actions">
+            <button class="btn-modal btn-modal-ghost" onclick="resolveConfirm(false)">Cancel</button>
+            <button class="btn-modal btn-modal-danger" id="confirmModalOk" onclick="resolveConfirm(true)">Confirm</button>
         </div>
     </div>
 </div>
 
 <!-- Upload Loading Progress Modal -->
-<div id="uploadProgressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1100; justify-content: center; align-items: center;">
-    <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
+<div id="uploadProgressModal" class="modal-overlay">
+    <div class="modal-box accent-blue" style="max-width: 300px; align-items: center; text-align: center;">
         <div class="spinner"></div>
         <div>
-            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem;">Uploading Poster</div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Optimizing & saving to database...</div>
+            <div style="font-weight: 700; color: var(--ink); font-size: 1rem; font-family: var(--font-display);">Uploading poster</div>
+            <div style="font-size: 0.82rem; color: var(--fog); margin-top: 4px;">Optimizing &amp; saving to database...</div>
         </div>
     </div>
 </div>
+
+<div class="toast-stack" id="toastStack"></div>
 
 <script>
     // Credentials & Roles Config
@@ -698,11 +752,36 @@
         "Tashkir"
     ];
 
+    // How many days before a slot's date it should unlock (become visible/actionable).
+    // Previously slots unlocked in fixed groups of 3 tied to approvals, which is why
+    // Fri/Sat pairs (only 1 day apart) could unlock weeks apart. Now every slot opens
+    // independently, exactly this many days ahead of its own date.
+    const UNLOCK_WINDOW_DAYS = 18;
+
     let DESIGNERS = [];
-    let currentUser = null; // { name: 'taki'/'jarin', role: 'owner'/'assigner' }
+    let currentUser = null;
     let slotStates = {};
     let currentMonthValue = 'current';
     let activeTopicSlotId = null;
+    let designersLoaded = false;
+    let slotsLoaded = false;
+
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    // Favicon fallback: if favicon.jpg isn't found next to this file, swap in a generated one
+    // instead of leaving a blank browser tab icon.
+    (function checkFavicon() {
+        const test = new Image();
+        test.onerror = function () {
+            document.getElementById('faviconLink').href =
+                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7bff'/%3E%3Ctext x='16' y='21' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EUY%3C/text%3E%3C/svg%3E";
+        };
+        test.src = "favicon.jpg";
+    })();
 
     db.ref("designers_list").on("value", (snapshot) => {
         const val = snapshot.val();
@@ -712,12 +791,14 @@
             DESIGNERS = [...DEFAULT_DESIGNERS];
             db.ref("designers_list").set(DESIGNERS);
         }
+        designersLoaded = true;
         renderAdminDesignerTags();
         renderSchedule();
     });
 
     db.ref("schedule_slots").on("value", (snapshot) => {
         slotStates = snapshot.val() || {};
+        slotsLoaded = true;
         renderSchedule();
     });
 
@@ -728,52 +809,80 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Custom Dropdown Logic
+    // ---------- Toasts ----------
+    function showToast(message, type = 'info') {
+        const stack = document.getElementById('toastStack');
+        const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info';
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `<i data-lucide="${icon}"></i><span>${escapeHtml(message)}</span>`;
+        stack.appendChild(el);
+        lucide.createIcons();
+        setTimeout(() => {
+            el.classList.add('leaving');
+            setTimeout(() => el.remove(), 200);
+        }, 3200);
+    }
+
+    // ---------- Confirm modal ----------
+    let confirmResolver = null;
+    function showConfirm(message, { title = 'Please confirm', okLabel = 'Confirm' } = {}) {
+        document.getElementById('confirmModalMessage').innerText = message;
+        document.getElementById('confirmModalTitle').innerHTML = `<i data-lucide="alert-triangle"></i> ${escapeHtml(title)}`;
+        document.getElementById('confirmModalOk').innerText = okLabel;
+        document.getElementById('confirmModal').classList.add('open');
+        lucide.createIcons();
+        return new Promise((resolve) => { confirmResolver = resolve; });
+    }
+    function resolveConfirm(result) {
+        document.getElementById('confirmModal').classList.remove('open');
+        if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
+    }
+
+    // ---------- Dropdown ----------
     function toggleCustomDropdown() {
         const options = document.getElementById('dropdownOptions');
-        options.classList.toggle('open');
+        const wrapper = document.getElementById('monthDropdown');
+        const isOpen = options.classList.toggle('open');
+        wrapper.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     }
 
     function selectMonth(value, text) {
         currentMonthValue = value;
         document.getElementById('selectedMonthText').innerText = text;
-        
-        const optionElems = document.querySelectorAll('.dropdown-option');
-        optionElems.forEach(el => {
-            if (el.innerText === text) el.classList.add('selected');
-            else el.classList.remove('selected');
-        });
-
+        document.querySelectorAll('.dropdown-option').forEach(el => el.classList.toggle('selected', el.innerText === text));
         document.getElementById('dropdownOptions').classList.remove('open');
+        document.getElementById('monthDropdown').setAttribute('aria-expanded', 'false');
         renderSchedule();
     }
 
-    window.addEventListener('click', function(e) {
+    window.addEventListener('click', function (e) {
         const dropdown = document.getElementById('monthDropdown');
         if (!dropdown.contains(e.target)) {
             document.getElementById('dropdownOptions').classList.remove('open');
+            dropdown.setAttribute('aria-expanded', 'false');
         }
     });
 
-    function openLoginModal() {
+    // ---------- Auth ----------
+    async function openLoginModal() {
         if (currentUser) {
-            // Logout if already logged in
-            if (confirm(`Logout from ${currentUser.name}'s account?`)) {
+            const ok = await showConfirm(`Log out from ${currentUser.name}'s account?`, { title: 'Log out', okLabel: 'Log out' });
+            if (ok) {
                 logAdminAction("LOGOUT", `${currentUser.name} logged out.`);
                 currentUser = null;
                 updateUIRoles();
+                showToast('Logged out.', 'info');
             }
         } else {
-            document.getElementById('adminLoginModal').style.display = 'flex';
+            document.getElementById('adminLoginModal').classList.add('open');
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('loginUsername').focus();
         }
     }
 
-    function closeLoginModal() {
-        document.getElementById('adminLoginModal').style.display = 'none';
-    }
+    function closeLoginModal() { document.getElementById('adminLoginModal').classList.remove('open'); }
 
     function verifyCredentials() {
         const uname = document.getElementById('loginUsername').value.trim();
@@ -784,8 +893,9 @@
             closeLoginModal();
             updateUIRoles();
             logAdminAction("LOGIN", `${uname} logged into the system as ${currentUser.role}.`);
+            showToast(`Welcome back, ${uname}.`, 'success');
         } else {
-            alert("Invalid Username or Password!");
+            showToast('Invalid username or password.', 'error');
             document.getElementById('loginPassword').value = '';
         }
     }
@@ -800,18 +910,18 @@
             adminPanel.classList.remove('active');
         } else if (currentUser.role === 'owner') {
             btn.className = "controller-btn active-owner";
-            btn.innerHTML = `<i data-lucide="shield-check"></i> taki (Controll)`;
+            btn.innerHTML = `<i data-lucide="shield-check"></i> ${escapeHtml(currentUser.name)} (Control)`;
             adminPanel.classList.add('active');
         } else if (currentUser.role === 'assigner') {
             btn.className = "controller-btn active-assigner";
-            btn.innerHTML = `<i data-lucide="user-check"></i> jarin (Assigner)`;
+            btn.innerHTML = `<i data-lucide="user-check"></i> ${escapeHtml(currentUser.name)} (Assigner)`;
             adminPanel.classList.remove('active');
         }
         lucide.createIcons();
         renderSchedule();
     }
 
-    // Admin Logs System
+    // ---------- Admin Logs ----------
     function logAdminAction(actionType, details) {
         const logData = {
             action: actionType,
@@ -826,34 +936,40 @@
         const logsContainer = document.getElementById('adminLogsList');
         if (!logsContainer) return;
         logsContainer.innerHTML = '';
-        
+
         const val = snapshot.val();
         if (val) {
             const logsArray = Object.values(val).reverse();
             logsArray.forEach(log => {
                 logsContainer.innerHTML += `
                     <div class="log-item">
-                        <strong style="color: var(--accent-blue);">[${log.action}]</strong> ${log.details} 
-                        <span style="font-size: 0.7rem; float: right; opacity: 0.7;">${new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <span class="log-tag">[${escapeHtml(log.action)}]</span>
+                        <span class="log-detail">${escapeHtml(log.details)}</span>
+                        <span class="log-time">${log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}</span>
                     </div>
                 `;
             });
         } else {
-            logsContainer.innerHTML = `<div class="log-item">No activity logs found.</div>`;
+            logsContainer.innerHTML = `<div class="log-item"><span class="log-detail">No activity logs yet — actions will appear here.</span></div>`;
         }
     });
 
     function renderAdminDesignerTags() {
         const tagContainer = document.getElementById('designerTagList');
         if (!tagContainer) return;
-        tagContainer.innerHTML = '';
 
+        if (DESIGNERS.length === 0) {
+            tagContainer.innerHTML = `<div class="empty-hint">No designers yet — add one above to start building the rotation.</div>`;
+            return;
+        }
+
+        tagContainer.innerHTML = '';
         DESIGNERS.forEach((name, index) => {
             tagContainer.innerHTML += `
                 <div class="designer-tag">
-                    <span>${name}</span>
-                    <button class="btn-delete-tag" onclick="deleteDesigner(${index})" title="Remove Designer">
-                        <i data-lucide="x" style="width: 14px;"></i>
+                    <span>${escapeHtml(name)}</span>
+                    <button class="btn-delete-tag" onclick="deleteDesigner(${index})" title="Remove designer" aria-label="Remove ${escapeHtml(name)}">
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
             `;
@@ -870,30 +986,33 @@
             db.ref("designers_list").set(DESIGNERS);
             logAdminAction("ADD_DESIGNER", `Added new designer: ${name}`);
             input.value = '';
+            showToast(`${name} added to the rotation.`, 'success');
         }
     }
 
-    function deleteDesigner(index) {
+    async function deleteDesigner(index) {
         if (!currentUser || currentUser.role !== 'owner') return;
-        if (confirm(`Are you sure you want to remove ${DESIGNERS[index]}?`)) {
-            const removedName = DESIGNERS[index];
+        const name = DESIGNERS[index];
+        const ok = await showConfirm(`Remove ${name} from the rotation? This can't be undone.`, { title: 'Remove designer', okLabel: 'Remove' });
+        if (ok) {
             DESIGNERS.splice(index, 1);
             db.ref("designers_list").set(DESIGNERS);
-            logAdminAction("DELETE_DESIGNER", `Removed designer: ${removedName}`);
+            logAdminAction("DELETE_DESIGNER", `Removed designer: ${name}`);
+            showToast(`${name} removed.`, 'info');
         }
     }
 
-    // Topic Assignment Modal Logic (For jarin / taki)
+    // ---------- Topic Assignment (owner/assigner can pre-assign topics on locked, future slots too) ----------
     function openTopicModal(slotId, designerName, currentTopic) {
         activeTopicSlotId = slotId;
         document.getElementById('topicModalSubtitle').innerText = `Assigning topic for ${designerName}`;
         document.getElementById('topicInput').value = currentTopic || '';
-        document.getElementById('topicModal').style.display = 'flex';
+        document.getElementById('topicModal').classList.add('open');
         document.getElementById('topicInput').focus();
     }
 
     function closeTopicModal() {
-        document.getElementById('topicModal').style.display = 'none';
+        document.getElementById('topicModal').classList.remove('open');
         activeTopicSlotId = null;
     }
 
@@ -903,6 +1022,7 @@
             db.ref("schedule_slots/" + activeTopicSlotId).update({ topic: topic }).then(() => {
                 logAdminAction("ASSIGN_TOPIC", `Topic updated for slot ID: ${activeTopicSlotId}`);
                 closeTopicModal();
+                showToast('Topic saved.', 'success');
             });
         }
     }
@@ -910,15 +1030,15 @@
     function generateMonthSchedule(year, monthIndex) {
         if (DESIGNERS.length === 0) return [];
         const slots = [];
-        
-        const date = new Date(year, 6, 31); 
+
+        const date = new Date(year, 6, 31);
         let designerIdx = 0;
 
         while (date.getFullYear() === year && date.getMonth() <= monthIndex + 1) {
             if (date.getMonth() > monthIndex && monthIndex === new Date(year, monthIndex, 1).getMonth() && date.getDate() > 1 && monthIndex !== 6) {
                 break;
             }
-            
+
             const day = date.getDay();
             if (day === 5 || day === 6) {
                 if (date.getMonth() === monthIndex || (monthIndex === 6 && date.getMonth() === 6 && date.getDate() === 31)) {
@@ -933,10 +1053,20 @@
                 }
             }
             date.setDate(date.getDate() + 1);
-            
+
             if (date.getMonth() > monthIndex && date.getDay() === 0 && date.getDate() > 7) break;
         }
         return slots;
+    }
+
+    // A slot unlocks exactly UNLOCK_WINDOW_DAYS before its own date (and stays unlocked
+    // after that, including once it's in the past). Each slot is judged purely against
+    // its own date now, so closely-spaced slots open on a matching, predictable cadence.
+    function isSlotUnlocked(slotDate) {
+        const now = new Date(); now.setHours(0, 0, 0, 0);
+        const d = new Date(slotDate); d.setHours(0, 0, 0, 0);
+        const daysUntil = Math.round((d - now) / (24 * 60 * 60 * 1000));
+        return daysUntil <= UNLOCK_WINDOW_DAYS;
     }
 
     function triggerFileUpload(slotId) {
@@ -948,7 +1078,7 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            document.getElementById('uploadProgressModal').style.display = 'flex';
+            document.getElementById('uploadProgressModal').classList.add('open');
 
             const reader = new FileReader();
             reader.onload = async (event) => {
@@ -959,7 +1089,7 @@
                     canvas.height = img.height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
-                    
+
                     const base64Url = canvas.toDataURL('image/jpeg', 0.90);
 
                     try {
@@ -969,10 +1099,12 @@
                             posterUrl: base64Url
                         });
                         logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ID: ${slotId}`);
+                        showToast('Poster uploaded — pending review.', 'success');
                     } catch (err) {
                         console.error("Firebase Save Error:", err);
+                        showToast('Could not upload poster. Please try again.', 'error');
                     } finally {
-                        document.getElementById('uploadProgressModal').style.display = 'none';
+                        document.getElementById('uploadProgressModal').classList.remove('open');
                     }
                 };
                 img.src = event.target.result;
@@ -987,16 +1119,20 @@
         if (!currentUser || currentUser.role !== 'owner') return;
         db.ref("schedule_slots/" + slotId).update({ approved: true }).then(() => {
             logAdminAction("APPROVE_SLOT", `Slot ID: ${slotId} was approved.`);
+            showToast('Slot approved.', 'success');
         });
     }
 
-    function resetSlot(slotId) {
+    async function resetSlot(slotId) {
         if (!currentUser || currentUser.role !== 'owner') return;
-        if (confirm("Are you sure you want to delete this slot's data and poster?")) {
+        const ok = await showConfirm("Delete this slot's submission data and poster? This can't be undone.", { title: 'Reset slot', okLabel: 'Delete' });
+        if (ok) {
             db.ref("schedule_slots/" + slotId).remove().then(() => {
                 logAdminAction("RESET_SLOT", `Slot ID: ${slotId} was reset/deleted.`);
+                showToast('Slot reset.', 'info');
             }).catch((error) => {
                 console.error("Error removing slot: ", error);
+                showToast('Could not reset slot.', 'error');
             });
         }
     }
@@ -1006,7 +1142,7 @@
             const response = await fetch(url);
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
-            
+
             const link = document.createElement('a');
             link.href = blobUrl;
             link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
@@ -1025,40 +1161,57 @@
         }
     }
 
+    function renderSkeletons() {
+        const grid = document.getElementById('scheduleGrid');
+        let html = '';
+        for (let i = 0; i < 6; i++) {
+            html += `
+                <div class="skeleton-card">
+                    <div class="skeleton-bar" style="width:60%; height:14px;"></div>
+                    <div class="skeleton-bar" style="width:80%; height:20px;"></div>
+                    <div class="skeleton-bar" style="width:100%; height:30px;"></div>
+                    <div class="skeleton-bar" style="width:40%; height:22px; margin-top:auto;"></div>
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
+    }
+
     function renderSchedule() {
         const grid = document.getElementById('scheduleGrid');
-        grid.innerHTML = '';
+
+        if (!designersLoaded || !slotsLoaded) {
+            renderSkeletons();
+            return;
+        }
+
+        if (DESIGNERS.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i data-lucide="users"></i>
+                    <strong>No designers in the rotation yet</strong>
+                    <span>An admin needs to add designers before slots can be scheduled.</span>
+                </div>
+            `;
+            document.getElementById('statTotal').innerText = 0;
+            document.getElementById('statCompleted').innerText = 0;
+            document.getElementById('statPending').innerText = 0;
+            document.getElementById('statRemaining').innerText = 0;
+            lucide.createIcons();
+            return;
+        }
 
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
         const monthOffset = currentMonthValue === 'next' ? 1 : 0;
         const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-        
+
         const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
 
         let completedCount = 0;
         let pendingCount = 0;
-
-        let unlockedCount = 3; 
-        if (schedule.length > 3) {
-            let currentChainEndIndex = 2; 
-            while (currentChainEndIndex < schedule.length) {
-                const lastSlotInGroup = schedule[currentChainEndIndex];
-                const lastSlotState = slotStates[lastSlotInGroup.id];
-                const slotDate = new Date(lastSlotInGroup.date);
-                slotDate.setHours(0,0,0,0);
-                
-                if ((lastSlotState && lastSlotState.approved) || slotDate < now) {
-                    unlockedCount += 3;
-                    currentChainEndIndex += 3;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        let currentVisibleIndex = 0;
+        let cardsHtml = '';
 
         schedule.forEach((slot) => {
             const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null, topic: "" };
@@ -1071,92 +1224,90 @@
 
             const isPast = slotDate < now;
             const isAutoCancelled = isPast && !state.submitted && !state.approved;
-
-            let isUnlocked = false;
-            if (currentVisibleIndex < unlockedCount) {
-                isUnlocked = true;
-            }
-            currentVisibleIndex++;
+            const isUnlocked = isSlotUnlocked(slot.date);
+            const canReveal = isUnlocked || state.submitted || state.approved;
+            const isOwner = currentUser && currentUser.role === 'owner';
+            const isAdminOrAssigner = currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner');
 
             const dateString = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const safeTopic = escapeHtml(state.topic || '');
+            const safeDesigner = escapeHtml(slot.assignedDesigner);
+            const jsDesigner = safeDesigner.replace(/'/g, "\\'");
+            const jsTopic = safeTopic.replace(/'/g, "\\'");
 
             let statusMarkup = '';
             let actionMarkup = '';
             let cardExtraClass = '';
             let topicMarkup = '';
+            let isLiveNow = false;
 
-            // Render assigned topic for ALL users (Normal users, jarin, and taki) if available
+            // Topic is visible to everyone regardless of lock status.
             if (state.topic) {
-                topicMarkup = `<div class="topic-display"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: ${state.topic}</div>`;
+                topicMarkup = `<div class="topic-display"><i data-lucide="tag"></i><span>Topic: ${safeTopic}</span></div>`;
             } else {
-                topicMarkup = `<div class="topic-display" style="color:var(--text-muted); border-left-color:var(--text-muted);"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: Not Assigned Yet</div>`;
+                topicMarkup = `<div class="topic-display unassigned"><i data-lucide="tag"></i><span>Topic not assigned yet</span></div>`;
             }
 
-            // Allow jarin or taki to click and edit/assign topic if slot is unlocked or active
-            if (currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner')) {
-                if (isUnlocked || state.submitted || state.approved) {
-                    topicMarkup = `<div class="topic-display" style="cursor:pointer;" onclick="openTopicModal('${slot.id}', '${slot.assignedDesigner}', '${state.topic || ''}')"><i data-lucide="edit-3" style="width: 12px; display: inline;"></i> ${state.topic ? 'Topic: ' + state.topic : '+ Assign Topic'}</div>`;
-                }
+            // Assigner/owner can assign or edit the topic on ANY slot, including ones still locked far in the future.
+            if (isAdminOrAssigner) {
+                topicMarkup = `<div class="topic-display editable ${state.topic ? '' : 'unassigned'}" onclick="openTopicModal('${slot.id}', '${jsDesigner}', '${jsTopic}')">
+                    <i data-lucide="edit-3"></i><span>${state.topic ? 'Topic: ' + safeTopic : '+ Assign topic'}</span>
+                </div>`;
             }
 
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
                 cardExtraClass = 'faded-slot';
-                if (currentUser && currentUser.role === 'owner') {
-                    actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                if (isOwner) {
+                    actionMarkup = `<div class="action-group"><button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button></div>`;
                 }
-            } else if (isUnlocked || state.submitted || state.approved) {
+            } else if (canReveal) {
                 if (state.approved) {
-                    statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
+                    statusMarkup = `<span class="status-badge status-approved">Approved</span>`;
                     cardExtraClass = 'faded-slot';
-                    
-                    if (currentUser && currentUser.role === 'owner') {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
-                        let resetBtn = `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
-                        actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${downloadBtn}${resetBtn}</div>`;
-                    } else if (state.posterUrl) {
-                        // Normal users can also download approved posters if available
-                        actionMarkup = `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>`;
+
+                    if (isOwner) {
+                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
+                        actionMarkup = `<div class="action-group">${downloadBtn}${resetBtn}</div>`;
                     }
+                    // Downloads are owner-only; assigner and regular visitors see the status only.
                 } else if (state.submitted) {
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
-                    
-                    let viewBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
-                    let approveBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>` : '';
-                    let resetBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
-                    
-                    let actionButtonsHTML = viewBtn;
-                    if (currentUser && currentUser.role === 'owner') {
-                        actionButtonsHTML += approveBtn + resetBtn;
-                    }
-                    if (actionButtonsHTML) {
-                        actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${actionButtonsHTML}</div>`;
+
+                    if (isOwner) {
+                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                        let approveBtn = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
+                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
+                        actionMarkup = `<div class="action-group">${downloadBtn}${approveBtn}${resetBtn}</div>`;
                     }
                 } else {
-                    statusMarkup = `<span class="status-badge status-revealed">Active Slot</span>`;
-                    let uploadBtn = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
-                    let resetBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
-                    
-                    let actionButtonsHTML = uploadBtn;
-                    if (currentUser && currentUser.role === 'owner') {
-                        actionButtonsHTML += resetBtn;
+                    isLiveNow = true;
+                    statusMarkup = `<span class="status-badge status-active"><span class="pulse-dot"></span>Active Slot</span>`;
+                    let actionButtonsHTML = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                    if (isOwner) {
+                        actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
                     }
-                    actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${actionButtonsHTML}</div>`;
+                    actionMarkup = `<div class="action-group">${actionButtonsHTML}</div>`;
                 }
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
+                actionMarkup = `<span class="locked-note"><i data-lucide="info"></i> Opens ${UNLOCK_WINDOW_DAYS}d before the slot date</span>`;
             }
 
-            grid.innerHTML += `
-                <div class="slot-card ${(isUnlocked || state.submitted || state.approved) ? 'active-reveal' : ''} ${cardExtraClass}">
+            const nameReveal = canReveal || isAutoCancelled;
+
+            cardsHtml += `
+                <div class="slot-card ${canReveal ? 'active-reveal' : ''} ${isLiveNow ? 'is-live' : ''} ${cardExtraClass}">
                     <div class="card-top">
-                        <span class="slot-date">
-                            <i data-lucide="calendar" style="width: 14px; color: var(--accent-blue);"></i>
-                            ${dateString}
-                        </span>
+                        <span class="slot-date"><i data-lucide="calendar"></i>${dateString}</span>
                         <span>${slot.dayName}</span>
                     </div>
-                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved || isAutoCancelled) ? slot.assignedDesigner : '••••••••••••'}</div>
+                    <div class="ticket-divider"></div>
+                    <div class="designer-name">
+                        ${nameReveal ? '' : '<i data-lucide="lock" class="lock-icon"></i>'}
+                        ${nameReveal ? safeDesigner : 'Assignment locked'}
+                    </div>
                     ${topicMarkup}
                     <div class="card-bottom">
                         ${statusMarkup}
@@ -1166,6 +1317,8 @@
             `;
         });
 
+        grid.innerHTML = cardsHtml;
+
         const total = schedule.length;
         document.getElementById('statTotal').innerText = total;
         document.getElementById('statCompleted').innerText = completedCount;
@@ -1173,16 +1326,25 @@
         document.getElementById('statRemaining').innerText = total - completedCount;
 
         const safeTotal = total === 0 ? 1 : total;
-        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount/safeTotal)*100} 100`);
-        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount/safeTotal)*100} 100`);
-        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount)/safeTotal)*100} 100`);
+        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount / safeTotal) * 100} 100`);
+        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount / safeTotal) * 100} 100`);
+        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount) / safeTotal) * 100} 100`);
 
         lucide.createIcons();
     }
 
+    function clearSearch() {
+        const input = document.getElementById('designerSearch');
+        input.value = '';
+        handleSearch();
+        input.focus();
+    }
+
     function handleSearch() {
-        const query = document.getElementById('designerSearch').value.trim().toLowerCase();
+        const rawQuery = document.getElementById('designerSearch').value.trim();
+        const query = rawQuery.toLowerCase();
         const resultBox = document.getElementById('lookupResult');
+        document.getElementById('searchClearBtn').classList.toggle('visible', rawQuery.length > 0);
 
         if (!query) {
             resultBox.classList.remove('active');
@@ -1194,24 +1356,27 @@
         const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1);
         const fullSchedule = [...currentSchedule, ...nextSchedule];
 
-        const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= new Date(now.setHours(0,0,0,0)));
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= todayStart);
 
         if (match) {
             const dateStr = match.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             document.getElementById('lookupName').innerText = match.assignedDesigner;
-            document.getElementById('lookupDate').innerText = `Next Slot: ${dateStr}`;
+            document.getElementById('lookupDate').innerText = `Next slot: ${dateStr}`;
             const daysLeft = Math.ceil((match.date - new Date()) / (1000 * 60 * 60 * 24));
-            document.getElementById('lookupCountdown').innerText = daysLeft === 0 ? 'Today' : `In ${daysLeft} Days`;
+            document.getElementById('lookupCountdown').innerText = daysLeft === 0 ? 'Today' : `In ${daysLeft}d`;
             resultBox.classList.add('active');
         } else {
-            document.getElementById('lookupName').innerText = "No Upcoming Slot";
-            document.getElementById('lookupDate').innerText = "Check name or select next month.";
+            document.getElementById('lookupName').innerText = "No upcoming slot";
+            document.getElementById('lookupDate').innerText = "Check the name or switch to next month.";
             document.getElementById('lookupCountdown').innerText = "";
             resultBox.classList.add('active');
         }
     }
 
     renderSchedule();
+    lucide.createIcons();
 </script>
 
 </body>
