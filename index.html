@@ -381,6 +381,8 @@
         .slot-card:hover { transform: translateY(-2px); }
         .slot-card.faded-slot { opacity: 0.5; }
         .slot-card.faded-slot:hover { opacity: 0.9; }
+        .slot-card.locked-slot { opacity: 0.58; filter: grayscale(0.22); }
+        .slot-card.locked-slot:hover { opacity: 0.82; }
         .slot-card.active-reveal { border-color: rgba(47,123,255,0.4); }
         .slot-card.is-live { border-color: rgba(34,197,129,0.45); }
 
@@ -398,6 +400,7 @@
         .ticket-divider::after { right: -8px; }
 
         .designer-name { font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; word-break: break-word; }
+        .designer-name.locked-name { color: var(--fog-dim); }
         .designer-name .lock-icon { color: var(--fog-dim); width: 16px; height: 16px; flex-shrink: 0; }
 
         .topic-display {
@@ -1298,13 +1301,13 @@
             const nameReveal = canReveal || isAutoCancelled;
 
             cardsHtml += `
-                <div class="slot-card ${canReveal ? 'active-reveal' : ''} ${isLiveNow ? 'is-live' : ''} ${cardExtraClass}">
+                <div class="slot-card ${canReveal ? 'active-reveal' : ''} ${isLiveNow ? 'is-live' : ''} ${cardExtraClass} ${!nameReveal ? 'locked-slot' : ''}">
                     <div class="card-top">
                         <span class="slot-date"><i data-lucide="calendar"></i>${dateString}</span>
                         <span>${slot.dayName}</span>
                     </div>
                     <div class="ticket-divider"></div>
-                    <div class="designer-name">
+                    <div class="designer-name ${!nameReveal ? 'locked-name' : ''}">
                         ${nameReveal ? '' : '<i data-lucide="lock" class="lock-icon"></i>'}
                         ${nameReveal ? safeDesigner : 'Assignment locked'}
                     </div>
