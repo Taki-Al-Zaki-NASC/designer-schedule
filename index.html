@@ -650,8 +650,8 @@
                 <i data-lucide="chevron-down" id="dropdownChevron"></i>
             </div>
             <div class="dropdown-options" id="dropdownOptions">
-                <div class="dropdown-option selected" role="option" onclick="selectMonth('current', 'Current Active')">Current Active</div>
-                <div class="dropdown-option" role="option" onclick="selectMonth('next', 'Next Month')">Next Month</div>
+                <div class="dropdown-option selected" role="option" data-value="current" onclick="selectMonth('current')">Current Month</div>
+                <div class="dropdown-option" role="option" data-value="next" onclick="selectMonth('next')">Next Month</div>
             </div>
         </div>
     </div>
@@ -809,8 +809,37 @@
         const now = new Date();
         document.getElementById('systemClock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
     }
-    setInterval(updateClock, 1000);
+
+    function getMonthLabel(monthOffset = 0) {
+        const now = new Date();
+        const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        return target.toLocaleDateString('en-US', { month: 'long' });
+    }
+
+    function updateMonthLabelDisplay() {
+        const currentMonthName = getMonthLabel(0);
+        const nextMonthName = getMonthLabel(1);
+        const monthTextMap = {
+            current: currentMonthName,
+            next: nextMonthName
+        };
+
+        document.getElementById('selectedMonthText').innerText = monthTextMap[currentMonthValue] || currentMonthName;
+
+        document.querySelectorAll('.dropdown-option').forEach((el) => {
+            const value = el.dataset.value;
+            el.innerText = monthTextMap[value] || currentMonthName;
+            el.classList.toggle('selected', value === currentMonthValue);
+        });
+    }
+
+    setInterval(() => {
+        updateClock();
+        updateMonthLabelDisplay();
+        renderSchedule();
+    }, 60000);
     updateClock();
+    updateMonthLabelDisplay();
 
     // ---------- Toasts ----------
     function showToast(message, type = 'info') {
@@ -850,10 +879,9 @@
         wrapper.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     }
 
-    function selectMonth(value, text) {
+    function selectMonth(value) {
         currentMonthValue = value;
-        document.getElementById('selectedMonthText').innerText = text;
-        document.querySelectorAll('.dropdown-option').forEach(el => el.classList.toggle('selected', el.innerText === text));
+        updateMonthLabelDisplay();
         document.getElementById('dropdownOptions').classList.remove('open');
         document.getElementById('monthDropdown').setAttribute('aria-expanded', 'false');
         renderSchedule();
