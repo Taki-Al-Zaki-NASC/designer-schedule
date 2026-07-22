@@ -517,7 +517,7 @@
         </div>
     </header>
 
-    <!-- Admin Management Panel (Visible for Jihad) -->
+    <!-- Admin Management Panel (Visible for taki) -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-panel-header">
             <i data-lucide="shield-alert"></i> Controller Control Panel
@@ -622,7 +622,7 @@
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
 
-<!-- Unified Login Modal for Jihad & Jarif -->
+<!-- Unified Login Modal for taki & Jarin -->
 <div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 16px;">
         <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
@@ -643,7 +643,7 @@
     </div>
 </div>
 
-<!-- Assign Topic Modal (For Jarif / Jihad) -->
+<!-- Assign Topic Modal (For Jarin / taki) -->
 <div id="topicModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1050; justify-content: center; align-items: center;">
     <div style="background: var(--card-bg); border: 1px solid var(--accent-orange); padding: 28px; border-radius: 14px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px;">
         <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
@@ -699,7 +699,7 @@
     ];
 
     let DESIGNERS = [];
-    let currentUser = null; // { name: 'Jihad'/'Jarif', role: 'owner'/'assigner' }
+    let currentUser = null; // { name: 'taki'/'Jarin', role: 'owner'/'assigner' }
     let slotStates = {};
     let currentMonthValue = 'current';
     let activeTopicSlotId = null;
@@ -800,11 +800,11 @@
             adminPanel.classList.remove('active');
         } else if (currentUser.role === 'owner') {
             btn.className = "controller-btn active-owner";
-            btn.innerHTML = `<i data-lucide="shield-check"></i> Jihad (Controll)`;
+            btn.innerHTML = `<i data-lucide="shield-check"></i> taki (Controll)`;
             adminPanel.classList.add('active');
         } else if (currentUser.role === 'assigner') {
             btn.className = "controller-btn active-assigner";
-            btn.innerHTML = `<i data-lucide="user-check"></i> Jarif (Assigner)`;
+            btn.innerHTML = `<i data-lucide="user-check"></i> Jarin (Assigner)`;
             adminPanel.classList.remove('active');
         }
         lucide.createIcons();
@@ -883,7 +883,7 @@
         }
     }
 
-    // Topic Assignment Modal Logic (For Jarif / Jihad)
+    // Topic Assignment Modal Logic (For Jarin / taki)
     function openTopicModal(slotId, designerName, currentTopic) {
         activeTopicSlotId = slotId;
         document.getElementById('topicModalSubtitle').innerText = `Assigning topic for ${designerName}`;
@@ -1085,14 +1085,14 @@
             let cardExtraClass = '';
             let topicMarkup = '';
 
-            // Render assigned topic for ALL users (Normal users, Jarif, and Jihad) if available
+            // Render assigned topic for ALL users (Normal users, Jarin, and taki) if available
             if (state.topic) {
                 topicMarkup = `<div class="topic-display"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: ${state.topic}</div>`;
             } else {
                 topicMarkup = `<div class="topic-display" style="color:var(--text-muted); border-left-color:var(--text-muted);"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: Not Assigned Yet</div>`;
             }
 
-            // Allow Jarif or Jihad to click and edit/assign topic if slot is unlocked or active
+            // Allow Jarin or taki to click and edit/assign topic if slot is unlocked or active
             if (currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner')) {
                 if (isUnlocked || state.submitted || state.approved) {
                     topicMarkup = `<div class="topic-display" style="cursor:pointer;" onclick="openTopicModal('${slot.id}', '${slot.assignedDesigner}', '${state.topic || ''}')"><i data-lucide="edit-3" style="width: 12px; display: inline;"></i> ${state.topic ? 'Topic: ' + state.topic : '+ Assign Topic'}</div>`;
