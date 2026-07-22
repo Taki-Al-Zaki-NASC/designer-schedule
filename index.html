@@ -383,6 +383,8 @@
         .slot-card.faded-slot:hover { opacity: 0.9; }
         .slot-card.locked-slot { opacity: 0.58; filter: grayscale(0.22); }
         .slot-card.locked-slot:hover { opacity: 0.82; }
+        .slot-card.submitted-slot { opacity: 0.62; filter: grayscale(0.12); border-color: rgba(245,165,36,0.32); }
+        .slot-card.submitted-slot:hover { opacity: 0.88; }
         .slot-card.active-reveal { border-color: rgba(47,123,255,0.4); }
         .slot-card.is-live { border-color: rgba(34,197,129,0.45); }
 
@@ -650,8 +652,8 @@
                 <i data-lucide="chevron-down" id="dropdownChevron"></i>
             </div>
             <div class="dropdown-options" id="dropdownOptions">
-                <div class="dropdown-option selected" role="option" onclick="selectMonth('current', 'Current Active')">Current Active</div>
-                <div class="dropdown-option" role="option" onclick="selectMonth('next', 'Next Month')">Next Month</div>
+                <div class="dropdown-option selected" role="option" data-value="current" onclick="selectMonth('current', 'Current Active')">Current Active</div>
+                <div class="dropdown-option" role="option" data-value="next" onclick="selectMonth('next', 'Next Month')">Next Month</div>
             </div>
         </div>
     </div>
@@ -666,65 +668,6 @@
     <div class="grid-header"><i data-lucide="layout-grid"></i> Live Schedule &amp; Submission</div>
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
-
-<!-- Unified Login Modal -->
-<div id="adminLoginModal" class="modal-overlay">
-    <div class="modal-box accent-blue">
-        <div class="modal-title"><i data-lucide="lock"></i> Admin Access</div>
-        <div class="form-group">
-            <label for="loginUsername">Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username..." onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()">
-        </div>
-        <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyCredentials()">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-modal-ghost" onclick="closeLoginModal()">Cancel</button>
-            <button class="btn-modal btn-modal-primary" onclick="verifyCredentials()">Log in</button>
-        </div>
-    </div>
-</div>
-
-<!-- Assign Topic Modal -->
-<div id="topicModal" class="modal-overlay">
-    <div class="modal-box accent-amber">
-        <div class="modal-title"><i data-lucide="edit-3"></i> Assign design topic</div>
-        <div id="topicModalSubtitle" class="modal-subtitle"></div>
-        <div class="form-group">
-            <input type="text" id="topicInput" placeholder="Enter design topic or details..." onkeydown="if(event.key==='Enter') saveAssignedTopic()">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-modal-ghost" onclick="closeTopicModal()">Cancel</button>
-            <button class="btn-modal btn-modal-amber" onclick="saveAssignedTopic()">Save topic</button>
-        </div>
-    </div>
-</div>
-
-<!-- Confirm Action Modal -->
-<div id="confirmModal" class="modal-overlay">
-    <div class="modal-box accent-coral" id="confirmModalBox">
-        <div class="modal-title" id="confirmModalTitle"><i data-lucide="alert-triangle"></i> Please confirm</div>
-        <div class="modal-message" id="confirmModalMessage">Are you sure?</div>
-        <div class="modal-actions">
-            <button class="btn-modal btn-modal-ghost" onclick="resolveConfirm(false)">Cancel</button>
-            <button class="btn-modal btn-modal-danger" id="confirmModalOk" onclick="resolveConfirm(true)">Confirm</button>
-        </div>
-    </div>
-</div>
-
-<!-- Upload Loading Progress Modal -->
-<div id="uploadProgressModal" class="modal-overlay">
-    <div class="modal-box accent-blue" style="max-width: 300px; align-items: center; text-align: center;">
-        <div class="spinner"></div>
-        <div>
-            <div style="font-weight: 700; color: var(--ink); font-size: 1rem; font-family: var(--font-display);">Uploading poster</div>
-            <div style="font-size: 0.82rem; color: var(--fog); margin-top: 4px;">Optimizing &amp; saving to database...</div>
-        </div>
-    </div>
-</div>
-
-<div class="toast-stack" id="toastStack"></div>
 
 <script>
     // Credentials & Roles Config
@@ -769,22 +712,51 @@
     let designersLoaded = false;
     let slotsLoaded = false;
 
+    function getMonthLabel(monthOffset = 0) {
+        const now = new Date();
+        const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        return target.toLocaleDateString('en-US', { month: 'long' });
+    }
+
+    function updateMonthDropdownText() {
+        const currentLabel = `${getMonthLabel(0)} Active`;
+        const nextLabel = `${getMonthLabel(1)} Next`;
+
+        document.getElementById('selectedMonthText').innerText =
+            currentMonthValue === 'current' ? currentLabel : nextLabel;
+
+        document.querySelectorAll('.dropdown-option').forEach((el) => {
+            const value = el.dataset.value;
+            el.innerText = value === 'current' ? currentLabel : nextLabel;
+            el.classList.toggle('selected', value === currentMonthValue);
+        });
+    }
+
     function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+        return String(str ?? '').replace(/[&<>'"]/g, (c) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[c]));
     }
 
-    // Favicon fallback: if favicon.jpg isn't found next to this file, swap in a generated one
-    // instead of leaving a blank browser tab icon.
-    (function checkFavicon() {
-        const test = new Image();
-        test.onerror = function () {
-            document.getElementById('faviconLink').href =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7bff'/%3E%3Ctext x='16' y='21' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EUY%3C/text%3E%3C/svg%3E";
-        };
-        test.src = "favicon.jpg";
-    })();
+    function getMonthLabel(monthOffset = 0) {
+        const now = new Date();
+        const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        return target.toLocaleDateString('en-US', { month: 'long' });
+    }
+
+    function updateMonthDropdownText() {
+        const currentLabel = `${getMonthLabel(0)} Active`;
+        const nextLabel = `${getMonthLabel(1)} Next`;
+
+        document.getElementById('selectedMonthText').innerText =
+            currentMonthValue === 'current' ? currentLabel : nextLabel;
+
+        document.querySelectorAll('.dropdown-option').forEach((el) => {
+            const value = el.dataset.value;
+            el.innerText = value === 'current' ? currentLabel : nextLabel;
+            el.classList.toggle('selected', value === currentMonthValue);
+        });
+    }
 
     db.ref("designers_list").on("value", (snapshot) => {
         const val = snapshot.val();
@@ -809,8 +781,13 @@
         const now = new Date();
         document.getElementById('systemClock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
     }
-    setInterval(updateClock, 1000);
+    setInterval(() => {
+        updateClock();
+        updateMonthDropdownText();
+        renderSchedule();
+    }, 60000);
     updateClock();
+    updateMonthDropdownText();
 
     // ---------- Toasts ----------
     function showToast(message, type = 'info') {
@@ -852,8 +829,7 @@
 
     function selectMonth(value, text) {
         currentMonthValue = value;
-        document.getElementById('selectedMonthText').innerText = text;
-        document.querySelectorAll('.dropdown-option').forEach(el => el.classList.toggle('selected', el.innerText === text));
+        updateMonthDropdownText();
         document.getElementById('dropdownOptions').classList.remove('open');
         document.getElementById('monthDropdown').setAttribute('aria-expanded', 'false');
         renderSchedule();
@@ -1207,10 +1183,14 @@
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
-        const monthOffset = currentMonthValue === 'next' ? 1 : 0;
-        const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        const startMonthOffset = currentMonthValue === 'next' ? 1 : 0;
+        const schedule = [];
+        let cursor = new Date(now.getFullYear(), now.getMonth() + startMonthOffset, 1);
 
-        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
+        for (let monthIndex = 0; monthIndex < 2; monthIndex++) {
+            schedule.push(...generateMonthSchedule(cursor.getFullYear(), cursor.getMonth()));
+            cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        }
 
         let completedCount = 0;
         let pendingCount = 0;
@@ -1228,7 +1208,15 @@
             const isPast = slotDate < now;
             const isAutoCancelled = isPast && !state.submitted && !state.approved;
             const isUnlocked = isSlotUnlocked(slot.date);
-            const canReveal = isUnlocked || state.submitted || state.approved;
+            const isSubmitted = Boolean(state.submitted) && !state.approved;
+            const allPastSlotsResolved = schedule.every((iterSlot) => {
+                const iterDate = new Date(iterSlot.date);
+                iterDate.setHours(0, 0, 0, 0);
+                if (iterDate >= now) return true;
+                const iterState = slotStates[iterSlot.id] || { submitted: false, approved: false };
+                return iterState.approved || iterState.submitted;
+            });
+            const canReveal = isUnlocked || allPastSlotsResolved;
             const isOwner = currentUser && currentUser.role === 'owner';
             const isAdminOrAssigner = currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner');
 
@@ -1244,14 +1232,12 @@
             let topicMarkup = '';
             let isLiveNow = false;
 
-            // Topic is visible to everyone regardless of lock status.
             if (state.topic) {
                 topicMarkup = `<div class="topic-display"><i data-lucide="tag"></i><span>Topic: ${safeTopic}</span></div>`;
             } else {
                 topicMarkup = `<div class="topic-display unassigned"><i data-lucide="tag"></i><span>Topic not assigned yet</span></div>`;
             }
 
-            // Assigner/owner can assign or edit the topic on ANY slot, including ones still locked far in the future.
             if (isAdminOrAssigner) {
                 topicMarkup = `<div class="topic-display editable ${state.topic ? '' : 'unassigned'}" onclick="openTopicModal('${slot.id}', '${jsDesigner}', '${jsTopic}')">
                     <i data-lucide="edit-3"></i><span>${state.topic ? 'Topic: ' + safeTopic : '+ Assign topic'}</span>
@@ -1264,35 +1250,33 @@
                 if (isOwner) {
                     actionMarkup = `<div class="action-group"><button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button></div>`;
                 }
-            } else if (canReveal) {
-                if (state.approved) {
-                    statusMarkup = `<span class="status-badge status-approved">Approved</span>`;
-                    cardExtraClass = 'faded-slot';
+            } else if (state.approved) {
+                statusMarkup = `<span class="status-badge status-approved">Approved</span>`;
+                cardExtraClass = 'faded-slot';
 
-                    if (isOwner) {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
-                        actionMarkup = `<div class="action-group">${downloadBtn}${resetBtn}</div>`;
-                    }
-                    // Downloads are owner-only; assigner and regular visitors see the status only.
-                } else if (state.submitted) {
-                    statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
-
-                    if (isOwner) {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
-                        let approveBtn = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
-                        actionMarkup = `<div class="action-group">${downloadBtn}${approveBtn}${resetBtn}</div>`;
-                    }
-                } else {
-                    isLiveNow = true;
-                    statusMarkup = `<span class="status-badge status-active"><span class="pulse-dot"></span>Active Slot</span>`;
-                    let actionButtonsHTML = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
-                    if (isOwner) {
-                        actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
-                    }
-                    actionMarkup = `<div class="action-group">${actionButtonsHTML}</div>`;
+                if (isOwner) {
+                    let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                    let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
+                    actionMarkup = `<div class="action-group">${downloadBtn}${resetBtn}</div>`;
                 }
+            } else if (isSubmitted) {
+                statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
+                cardExtraClass = 'submitted-slot faded-slot';
+
+                if (isOwner) {
+                    let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                    let approveBtn = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
+                    let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
+                    actionMarkup = `<div class="action-group">${downloadBtn}${approveBtn}${resetBtn}</div>`;
+                }
+            } else if (canReveal) {
+                isLiveNow = true;
+                statusMarkup = `<span class="status-badge status-active"><span class="pulse-dot"></span>Active Slot</span>`;
+                let actionButtonsHTML = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                if (isOwner) {
+                    actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
+                }
+                actionMarkup = `<div class="action-group">${actionButtonsHTML}</div>`;
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
                 actionMarkup = `<span class="locked-note"><i data-lucide="info"></i> Opens ${UNLOCK_WINDOW_DAYS}d before the slot date</span>`;
@@ -1367,7 +1351,7 @@
             const dateStr = match.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             document.getElementById('lookupName').innerText = match.assignedDesigner;
             document.getElementById('lookupDate').innerText = `Next slot: ${dateStr}`;
-            const daysLeft = Math.ceil((match.date - new Date()) / (1000 * 60 * 60 * 24));
+            const daysLeft = Math.ceil((match.date - new Date()) / (1000 * 60 * 60 *  24));
             document.getElementById('lookupCountdown').innerText = daysLeft === 0 ? 'Today' : `In ${daysLeft}d`;
             resultBox.classList.add('active');
         } else {
