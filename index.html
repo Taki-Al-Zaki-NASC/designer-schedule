@@ -322,7 +322,6 @@
             transition: all 0.2s ease;
         }
 
-        /* Fade/Transparency effect for Approved & Cancelled slots */
         .slot-card.faded-slot {
             opacity: 0.45;
         }
@@ -510,7 +509,6 @@
 <script>
     const ADMIN_PASSWORD = "admin123";
 
-    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyD2rVSwbwjW7Wp30askxe2Sldxjd7Po9mo",
         authDomain: "uyfsr-ae621.firebaseapp.com",
@@ -620,7 +618,7 @@
         }
     }
 
-    function generateMonthSchedule(year, monthIndex, minDateDay = 1) {
+    function generateMonthSchedule(year, monthIndex) {
         if (DESIGNERS.length === 0) return [];
         const slots = [];
         const date = new Date(year, monthIndex, 1);
@@ -630,14 +628,12 @@
             const day = date.getDay();
             if (day === 5 || day === 6) {
                 const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
-                if (date.getDate() >= minDateDay) {
-                    slots.push({
-                        id: `${year}-${monthIndex}-${date.getDate()}`,
-                        date: new Date(date),
-                        dayName: day === 5 ? "Friday" : "Saturday",
-                        assignedDesigner: assignedName
-                    });
-                }
+                slots.push({
+                    id: `${year}-${monthIndex}-${date.getDate()}`,
+                    date: new Date(date),
+                    dayName: day === 5 ? "Friday" : "Saturday",
+                    assignedDesigner: assignedName
+                });
                 designerIdx++;
             }
             date.setDate(date.getDate() + 1);
@@ -645,7 +641,6 @@
         return slots;
     }
 
-    // 🚀 Direct Base64 Conversion & Firebase Upload (Zero External API Errors)
     function triggerFileUpload(slotId) {
         const input = document.createElement('input');
         input.type = 'file';
@@ -673,7 +668,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
                     
-                    // Compress and convert into standard Base64 Data URL
                     const base64Url = canvas.toDataURL('image/jpeg', 0.90);
 
                     try {
@@ -688,13 +682,8 @@
                         alert("❌ Error saving image to database!");
                     }
                 };
-                img.onerror = () => {
-                    alert("❌ Invalid image file!");
-                };
+                img.onerror = () => { alert("❌ Invalid image file!"); };
                 img.src = event.target.result;
-            };
-            reader.onerror = () => {
-                alert("❌ Failed to read file!");
             };
             reader.readAsDataURL(file);
         };
@@ -706,7 +695,6 @@
         db.ref("schedule_slots/" + slotId).update({ approved: true });
     }
 
-    // 🚀 Direct Auto Download Without New Tab
     async function downloadImage(url, designerName) {
         try {
             alert("Downloading file... Please wait!");
@@ -722,8 +710,6 @@
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
         } catch (err) {
-            console.error("Download Error:", err);
-            // Fallback for direct data urls
             const link = document.createElement('a');
             link.href = url;
             link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
@@ -743,15 +729,36 @@
         const monthOffset = document.getElementById('monthSelect').value === 'next' ? 1 : 0;
         const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
         
-        const targetAug8 = new Date(2026, 7, 8);
-        const unlockLimit = now >= targetAug8 ? 6 : 3;
-        
-        const startFromDay = (monthOffset === 0 && targetDate.getMonth() === 7) ? 8 : 1;
-        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth(), startFromDay);
+        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
 
-        let upcomingSlotsCount = 0;
         let completedCount = 0;
         let pendingCount = 0;
+
+        // Dynamic Unlock Chain Logic Calculation
+        let unlockedCount = 3; // Initial default visible unlock count (First 3 slots: Aug 1, Aug 7, Aug 8)
+        const sinanSlotId = "2026-7-8"; // August 8, 2026 (Month index 7 = August)
+        const sinanState = slotStates[sinanSlotId];
+
+        if (sinanState && sinanState.approved) {
+            unlockedCount = 6; // Ahanaf's slot approved -> unlocks 3 more (total 6 slots)
+
+            // Check subsequent groups of 3 slots in the chain
+            if (schedule.length > 5) {
+                let currentChainEndIndex = 5;
+                while (currentChainEndIndex < schedule.length) {
+                    const lastSlotInGroup = schedule[currentChainEndIndex];
+                    const lastSlotState = slotStates[lastSlotInGroup.id];
+                    if (lastSlotState && lastSlotState.approved) {
+                        unlockedCount += 3;
+                        currentChainEndIndex += 3;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        let currentVisibleIndex = 0;
 
         schedule.forEach((slot) => {
             const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null };
@@ -766,10 +773,10 @@
             const isAutoCancelled = isPast && !state.submitted && !state.approved;
 
             let isUnlocked = false;
-            if (!isPast && upcomingSlotsCount < unlockLimit) {
+            if (currentVisibleIndex < unlockedCount) {
                 isUnlocked = true;
-                upcomingSlotsCount++;
             }
+            currentVisibleIndex++;
 
             const dateString = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -780,7 +787,7 @@
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
                 cardExtraClass = 'faded-slot';
-            } else if (isUnlocked || (isPast && (state.submitted || state.approved))) {
+            } else if (isUnlocked || state.submitted || state.approved) {
                 if (state.approved) {
                     statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
                     cardExtraClass = 'faded-slot';
@@ -814,7 +821,7 @@
                         </span>
                         <span>${slot.dayName}</span>
                     </div>
-                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved || isPast) ? slot.assignedDesigner : '••••••••••••'}</div>
+                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved) ? slot.assignedDesigner : '••••••••••••'}</div>
                     <div class="card-bottom">
                         ${statusMarkup}
                         ${actionMarkup}
@@ -847,8 +854,8 @@
         }
 
         const now = new Date();
-        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth(), 8);
-        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1, 1);
+        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth());
+        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1);
         const fullSchedule = [...currentSchedule, ...nextSchedule];
 
         const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= new Date(now.setHours(0,0,0,0)));
