@@ -734,26 +734,22 @@
         let completedCount = 0;
         let pendingCount = 0;
 
-        // Dynamic Unlock Chain Logic Calculation
-        let unlockedCount = 3; // Initial default visible unlock count (First 3 slots: Aug 1, Aug 7, Aug 8)
-        const sinanSlotId = "2026-7-8"; // August 8, 2026 (Month index 7 = August)
-        const sinanState = slotStates[sinanSlotId];
-
-        if (sinanState && sinanState.approved) {
-            unlockedCount = 6; // Ahanaf's slot approved -> unlocks 3 more (total 6 slots)
-
-            // Check subsequent groups of 3 slots in the chain
-            if (schedule.length > 5) {
-                let currentChainEndIndex = 5;
-                while (currentChainEndIndex < schedule.length) {
-                    const lastSlotInGroup = schedule[currentChainEndIndex];
-                    const lastSlotState = slotStates[lastSlotInGroup.id];
-                    if (lastSlotState && lastSlotState.approved) {
-                        unlockedCount += 3;
-                        currentChainEndIndex += 3;
-                    } else {
-                        break;
-                    }
+        // Dynamic Unlock Chain Logic Calculation (Independent of past missed status)
+        let unlockedCount = 3; // Initial first 3 slots always unlocked
+        if (schedule.length > 3) {
+            let currentChainEndIndex = 2; // Index 2 is the 3rd slot (e.g., 3rd slot of the month)
+            while (currentChainEndIndex < schedule.length) {
+                const lastSlotInGroup = schedule[currentChainEndIndex];
+                const lastSlotState = slotStates[lastSlotInGroup.id];
+                // If this milestone slot is approved OR if its date has already passed (so it's auto-bypassed/missed), unlock the next 3
+                const slotDate = new Date(lastSlotInGroup.date);
+                slotDate.setHours(0,0,0,0);
+                
+                if ((lastSlotState && lastSlotState.approved) || slotDate < now) {
+                    unlockedCount += 3;
+                    currentChainEndIndex += 3;
+                } else {
+                    break;
                 }
             }
         }
@@ -787,6 +783,10 @@
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
                 cardExtraClass = 'faded-slot';
+                // Even if cancelled/missed, if it falls within unlocked range, allow viewing/uploading if needed or keep it minimal
+                if (isControllerMode) {
+                    actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                }
             } else if (isUnlocked || state.submitted || state.approved) {
                 if (state.approved) {
                     statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
@@ -821,7 +821,7 @@
                         </span>
                         <span>${slot.dayName}</span>
                     </div>
-                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved) ? slot.assignedDesigner : '••••••••••••'}</div>
+                    <div class="designer-name">${(isUnlocked || state.submitted || state.approved || isAutoCancelled) ? slot.assignedDesigner : '••••••••••••'}</div>
                     <div class="card-bottom">
                         ${statusMarkup}
                         ${actionMarkup}
