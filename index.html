@@ -39,9 +39,8 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 24px 16px;
-            display: flex;
-            justify-content: center;
+            padding: 16px 8px; /* মোবাইলের জন্য প্যাডিং একটু কমিয়ে দেওয়া হলো */
+            overflow-x: hidden; /* ডান দিকের অতিরিক্ত স্ক্রল বা হোয়াইট স্পেস রোধ করতে */
         }
 
         .app-container {
@@ -50,19 +49,20 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            margin: 0 auto; 
         }
 
         /* Top Navbar */
         .top-navbar {
-            background: var(--card-bg);
+            ackground: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 4px 24px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
         }
 
         .brand-title h1 {
@@ -75,7 +75,7 @@
         }
 
         .brand-logo {
-            height: 90px;
+            height: 45px; /* মোবাইলের জন্য লোগোর সাইজ ছোট করে দেওয়া হলো যাতে ভেঙে না যায় */
             width: auto;
             object-fit: contain;
             display: block;
@@ -469,7 +469,7 @@
         <div class="brand-title">
             <h1>
                 <img src="logo.png" alt="UYFSR Logo" class="brand-logo">
-                Schedule<span>Dashboard</span>
+                Schedule & Submission<span>Dashboard</span>
             </h1>
         </div>
         <div class="system-time" id="systemClock">00:00:00 UTC</div>
@@ -573,7 +573,7 @@
 
     <!-- Schedule Grid -->
     <div class="grid-header">
-        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule & Submission
+        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule & Submission 
     </div>
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
