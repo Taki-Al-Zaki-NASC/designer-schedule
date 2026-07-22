@@ -256,7 +256,7 @@
             .controls-row { grid-template-columns: 1fr; }
         }
 
-        .search-box, .select-box {
+        .search-box {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 10px;
@@ -266,7 +266,7 @@
             gap: 10px;
         }
 
-        .search-box input, .select-box select {
+        .search-box input {
             background: transparent;
             border: none;
             outline: none;
@@ -275,9 +275,59 @@
             font-size: 0.9rem;
         }
 
-        .select-box select option {
+        /* Custom Dark Theme Dropdown */
+        .custom-dropdown {
+            position: relative;
             background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .dropdown-select-btn {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
             color: var(--text-main);
+        }
+
+        .dropdown-options {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .dropdown-options.open {
+            display: flex;
+        }
+
+        .dropdown-option {
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: 0.15s ease;
+        }
+
+        .dropdown-option:hover {
+            background: rgba(0, 117, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .dropdown-option.selected {
+            color: var(--accent-blue);
+            font-weight: 600;
         }
 
         .lookup-result {
@@ -395,6 +445,20 @@
         .btn-action:hover { background: var(--accent-hover); }
         .btn-approve { background: var(--accent-green); }
         .btn-approve:hover { background: #0d9668; }
+
+        /* Progress Bar Animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--card-border);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -481,12 +545,20 @@
             <i data-lucide="search" style="color: var(--text-muted); width: 18px;"></i>
             <input type="text" id="designerSearch" placeholder="Search designer assignment..." oninput="handleSearch()">
         </div>
-        <div class="select-box">
-            <i data-lucide="calendar" style="color: var(--text-muted); width: 18px;"></i>
-            <select id="monthSelect" onchange="renderSchedule()">
-                <option value="current">Current Active</option>
-                <option value="next">Next Month</option>
-            </select>
+
+        <!-- Custom Dark Theme Month Selector -->
+        <div class="custom-dropdown" id="monthDropdown">
+            <div class="dropdown-select-btn" onclick="toggleCustomDropdown()">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="calendar" style="color: var(--text-muted); width: 16px;"></i>
+                    <span id="selectedMonthText">Current Active</span>
+                </div>
+                <i data-lucide="chevron-down" style="color: var(--text-muted); width: 16px;" id="dropdownChevron"></i>
+            </div>
+            <div class="dropdown-options" id="dropdownOptions">
+                <div class="dropdown-option selected" onclick="selectMonth('current', 'Current Active')">Current Active</div>
+                <div class="dropdown-option" onclick="selectMonth('next', 'Next Month')">Next Month</div>
+            </div>
         </div>
     </div>
 
@@ -520,6 +592,17 @@
     </div>
 </div>
 
+<!-- Upload Loading Progress Modal -->
+<div id="uploadProgressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1100; justify-content: center; align-items: center;">
+    <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
+        <div class="spinner"></div>
+        <div>
+            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem;" id="uploadModalTitle">Uploading Poster</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;" id="uploadModalDesc">Optimizing & saving to database...</div>
+        </div>
+    </div>
+</div>
+
 <script>
     const ADMIN_PASSWORD = "admin123";
 
@@ -548,6 +631,7 @@
     let DESIGNERS = [];
     let isControllerMode = false;
     let slotStates = {};
+    let currentMonthValue = 'current';
 
     db.ref("designers_list").on("value", (snapshot) => {
         const val = snapshot.val();
@@ -572,6 +656,33 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    // Custom Dropdown Logic
+    function toggleCustomDropdown() {
+        const options = document.getElementById('dropdownOptions');
+        options.classList.toggle('open');
+    }
+
+    function selectMonth(value, text) {
+        currentMonthValue = value;
+        document.getElementById('selectedMonthText').innerText = text;
+        
+        const optionElems = document.querySelectorAll('.dropdown-option');
+        optionElems.forEach(el => {
+            if (el.innerText === text) el.classList.add('selected');
+            else el.classList.remove('selected');
+        });
+
+        document.getElementById('dropdownOptions').classList.remove('open');
+        renderSchedule();
+    }
+
+    window.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('monthDropdown');
+        if (!dropdown.contains(e.target)) {
+            document.getElementById('dropdownOptions').classList.remove('open');
+        }
+    });
 
     function toggleControllerMode() {
         const btn = document.getElementById('controllerToggle');
@@ -655,7 +766,6 @@
         if (DESIGNERS.length === 0) return [];
         const slots = [];
         
-        // Starts scheduling strictly from July 31st onwards
         const date = new Date(year, 6, 31); 
         let designerIdx = 0;
 
@@ -665,7 +775,6 @@
             }
             
             const day = date.getDay();
-            // Friday (5) or Saturday (6)
             if (day === 5 || day === 6) {
                 if (date.getMonth() === monthIndex || (monthIndex === 6 && date.getMonth() === 6 && date.getDate() === 31)) {
                     const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
@@ -694,7 +803,8 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            alert("Processing Image... Please wait!");
+            // Show Loading Progress Modal
+            document.getElementById('uploadProgressModal').style.display = 'flex';
 
             const reader = new FileReader();
             reader.onload = async (event) => {
@@ -714,13 +824,13 @@
                             approved: false,
                             posterUrl: base64Url
                         });
-                        alert("✅ Poster Uploaded & Saved Successfully!");
                     } catch (err) {
                         console.error("Firebase Save Error:", err);
-                        alert("❌ Error saving image to database!");
+                    } finally {
+                        // Hide Loading Progress Modal after completion
+                        document.getElementById('uploadProgressModal').style.display = 'none';
                     }
                 };
-                img.onerror = () => { alert("❌ Invalid image file!"); };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
@@ -735,19 +845,14 @@
 
     function resetSlot(slotId) {
         if (confirm("Are you sure you want to delete this slot's data and poster?")) {
-            db.ref("schedule_slots/" + slotId).remove()
-                .then(() => {
-                    alert("✅ Slot data deleted successfully!");
-                })
-                .catch((error) => {
-                    console.error("Error removing slot: ", error);
-                });
+            db.ref("schedule_slots/" + slotId).remove().catch((error) => {
+                console.error("Error removing slot: ", error);
+            });
         }
     }
 
     async function downloadImage(url, designerName) {
         try {
-            alert("Downloading file... Please wait!");
             const response = await fetch(url);
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
@@ -776,7 +881,7 @@
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
-        const monthOffset = document.getElementById('monthSelect').value === 'next' ? 1 : 0;
+        const monthOffset = currentMonthValue === 'next' ? 1 : 0;
         const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
         
         const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
