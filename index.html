@@ -621,22 +621,37 @@
     function generateMonthSchedule(year, monthIndex) {
         if (DESIGNERS.length === 0) return [];
         const slots = [];
-        const date = new Date(year, monthIndex, 1);
+        
+        // Starts scheduling strictly from July 31st onwards as requested
+        const date = new Date(year, 6, 31); 
         let designerIdx = 0;
 
-        while (date.getMonth() === monthIndex) {
+        // Collect slots for July 31 and August onwards
+        while (date.getFullYear() === year && date.getMonth() <= monthIndex + 1) {
+            // Stop generating if we cross into months beyond the target view range
+            if (date.getMonth() > monthIndex && monthIndex === new Date(year, monthIndex, 1).getMonth() && date.getDate() > 1 && monthIndex !== 6) {
+                break;
+            }
+            
             const day = date.getDay();
+            // Friday (5) or Saturday (6)
             if (day === 5 || day === 6) {
-                const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
-                slots.push({
-                    id: `${year}-${monthIndex}-${date.getDate()}`,
-                    date: new Date(date),
-                    dayName: day === 5 ? "Friday" : "Saturday",
-                    assignedDesigner: assignedName
-                });
-                designerIdx++;
+                // Only include slots belonging up to the end of target month (or July 31st if target is July)
+                if (date.getMonth() === monthIndex || (monthIndex === 6 && date.getMonth() === 6 && date.getDate() === 31)) {
+                    const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
+                    slots.push({
+                        id: `${year}-${date.getMonth()}-${date.getDate()}`,
+                        date: new Date(date),
+                        dayName: day === 5 ? "Friday" : "Saturday",
+                        assignedDesigner: assignedName
+                    });
+                    designerIdx++;
+                }
             }
             date.setDate(date.getDate() + 1);
+            
+            // Safety break to prevent infinite loops
+            if (date.getMonth() > monthIndex && date.getDay() === 0 && date.getDate() > 7) break;
         }
         return slots;
     }
@@ -695,6 +710,18 @@
         db.ref("schedule_slots/" + slotId).update({ approved: true });
     }
 
+    function resetSlot(slotId) {
+        if (confirm("Are you sure you want to delete this slot's data and poster?")) {
+            db.ref("schedule_slots/" + slotId).remove()
+                .then(() => {
+                    alert("✅ Slot data deleted successfully!");
+                })
+                .catch((error) => {
+                    console.error("Error removing slot: ", error);
+                });
+        }
+    }
+
     async function downloadImage(url, designerName) {
         try {
             alert("Downloading file... Please wait!");
@@ -734,14 +761,12 @@
         let completedCount = 0;
         let pendingCount = 0;
 
-        // Dynamic Unlock Chain Logic Calculation (Independent of past missed status)
-        let unlockedCount = 3; // Initial first 3 slots always unlocked
+        let unlockedCount = 3; 
         if (schedule.length > 3) {
-            let currentChainEndIndex = 2; // Index 2 is the 3rd slot (e.g., 3rd slot of the month)
+            let currentChainEndIndex = 2; 
             while (currentChainEndIndex < schedule.length) {
                 const lastSlotInGroup = schedule[currentChainEndIndex];
                 const lastSlotState = slotStates[lastSlotInGroup.id];
-                // If this milestone slot is approved OR if its date has already passed (so it's auto-bypassed/missed), unlock the next 3
                 const slotDate = new Date(lastSlotInGroup.date);
                 slotDate.setHours(0,0,0,0);
                 
@@ -783,7 +808,6 @@
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
                 cardExtraClass = 'faded-slot';
-                // Even if cancelled/missed, if it falls within unlocked range, allow viewing/uploading if needed or keep it minimal
                 if (isControllerMode) {
                     actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
                 }
@@ -792,21 +816,26 @@
                     statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
                     cardExtraClass = 'faded-slot';
                     
-                    if (isControllerMode && state.posterUrl) {
-                        actionMarkup = `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>`;
+                    if (isControllerMode) {
+                        let downloadBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>` : '';
+                        let resetBtn = `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
+                        actionMarkup = `<div style="display:flex; gap:6px;">${downloadBtn}${resetBtn}</div>`;
                     }
                 } else if (state.submitted) {
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
                     
                     let viewBtn = (isControllerMode && state.posterUrl) ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>` : '';
                     let approveBtn = isControllerMode ? `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>` : '';
+                    let resetBtn = isControllerMode ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
                     
-                    if (viewBtn || approveBtn) {
-                        actionMarkup = `<div style="display:flex; gap:6px;">${viewBtn}${approveBtn}</div>`;
+                    if (viewBtn || approveBtn || resetBtn) {
+                        actionMarkup = `<div style="display:flex; gap:6px;">${viewBtn}${approveBtn}${resetBtn}</div>`;
                     }
                 } else {
                     statusMarkup = `<span class="status-badge status-revealed">Active Slot</span>`;
-                    actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload Poster</button>`;
+                    let uploadBtn = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                    let resetBtn = isControllerMode ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
+                    actionMarkup = `<div style="display:flex; gap:6px;">${uploadBtn}${resetBtn}</div>`;
                 }
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
