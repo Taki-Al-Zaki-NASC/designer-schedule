@@ -39,8 +39,10 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 16px 8px; /* মোবাইলের জন্য প্যাডিং একটু কমিয়ে দেওয়া হলো */
-            overflow-x: hidden; /* ডান দিকের অতিরিক্ত স্ক্রল বা হোয়াইট স্পেস রোধ করতে */
+            padding: 16px 8px;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
         }
 
         .app-container {
@@ -49,12 +51,12 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            margin: 0 auto; 
+            margin: 0 auto;
         }
 
         /* Top Navbar */
         .top-navbar {
-            ackground: var(--card-bg);
+            background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 12px 16px;
@@ -75,7 +77,7 @@
         }
 
         .brand-logo {
-            height: 45px; /* মোবাইলের জন্য লোগোর সাইজ ছোট করে দেওয়া হলো যাতে ভেঙে না যায় */
+            height: 45px;
             width: auto;
             object-fit: contain;
             display: block;
@@ -99,7 +101,7 @@
         .role-bar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .controller-btn {
@@ -118,7 +120,8 @@
         }
 
         .controller-btn:hover { background: var(--accent-hover); }
-        .controller-btn.active { background: var(--accent-green); }
+        .controller-btn.active-owner { background: var(--accent-purple); }
+        .controller-btn.active-assigner { background: var(--accent-orange); }
 
         /* Admin Management Panel */
         .admin-panel {
@@ -195,6 +198,26 @@
             border: none;
             display: flex;
             align-items: center;
+        }
+
+        /* Admin Logs Box */
+        .logs-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .log-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 4px;
         }
 
         /* Stats Cards */
@@ -407,11 +430,24 @@
             color: var(--text-main);
         }
 
+        .topic-display {
+            font-size: 0.82rem;
+            color: var(--accent-orange);
+            background: rgba(255, 159, 67, 0.1);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-orange);
+            word-break: break-all;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
         .card-bottom {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            flex-wrap: wrap; /* Fixed: prevents buttons from overflowing outside card boundaries */
         }
 
         .status-badge {
@@ -430,16 +466,17 @@
             background: var(--accent-blue);
             border: none;
             color: #fff;
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             transition: 0.2s;
             text-decoration: none;
+            white-space: nowrap; /* Keeps button text inline */
         }
 
         .btn-action:hover { background: var(--accent-hover); }
@@ -474,22 +511,29 @@
         </div>
         <div class="system-time" id="systemClock">00:00:00 UTC</div>
         <div class="role-bar">
-            <button id="controllerToggle" class="controller-btn" onclick="toggleControllerMode()">
+            <button id="controllerToggle" class="controller-btn" onclick="openLoginModal()">
                 <i data-lucide="lock"></i> Admin Access
             </button>
         </div>
     </header>
 
-    <!-- Admin User Management Panel -->
+    <!-- Admin Management Panel (Visible for Jihad) -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-panel-header">
-            <i data-lucide="user-plus"></i> Manage Designers List
+            <i data-lucide="shield-alert"></i> Owner Control Panel (Jihad)
         </div>
         <div class="add-user-box">
             <input type="text" id="newDesignerName" placeholder="Enter new designer full name...">
             <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
         </div>
         <div class="designer-list-tags" id="designerTagList"></div>
+
+        <div class="admin-panel-header" style="margin-top: 10px;">
+            <i data-lucide="activity"></i> System Audit Logs
+        </div>
+        <div class="logs-box" id="adminLogsList">
+            <div class="log-item">Loading logs...</div>
+        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -573,21 +617,43 @@
 
     <!-- Schedule Grid -->
     <div class="grid-header">
-        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule & Submission 
+        <i data-lucide="layout-grid" style="width: 16px;"></i> Live Schedule & Submission
     </div>
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
 
-<!-- Admin Login Modal -->
-<div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 24px; border-radius: 12px; width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="lock" style="width: 18px; color: var(--accent-blue);"></i> Admin Login
+<!-- Unified Login Modal for Jihad & Jarif -->
+<div id="adminLoginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="lock" style="width: 20px; color: var(--accent-blue);"></i> Admin Access
         </div>
-        <input type="password" id="adminPasswordInput" placeholder="Enter admin password..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button onclick="closeLoginModal()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
-            <button onclick="verifyAdminPassword()" style="background: var(--accent-blue); border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Login</button>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.8rem; color: var(--text-muted);">Username</label>
+            <input type="text" id="loginUsername" placeholder="Enter username ..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.8rem; color: var(--text-muted);">Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter password..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
+            <button onclick="closeLoginModal()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+            <button onclick="verifyCredentials()" style="background: var(--accent-blue); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Topic Modal (For Jarif / Jihad) -->
+<div id="topicModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 1050; justify-content: center; align-items: center;">
+    <div style="background: var(--card-bg); border: 1px solid var(--accent-orange); padding: 28px; border-radius: 14px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-weight: 700; color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="edit-3" style="width: 20px; color: var(--accent-orange);"></i> Assign Design Topic
+        </div>
+        <div id="topicModalSubtitle" style="font-size: 0.82rem; color: var(--text-muted);"></div>
+        <input type="text" id="topicInput" placeholder="Enter design topic or details..." style="background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); outline: none; width: 100%;">
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
+            <button onclick="closeTopicModal()" style="background: transparent; border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+            <button onclick="saveAssignedTopic()" style="background: var(--accent-orange); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;">Save Topic</button>
         </div>
     </div>
 </div>
@@ -597,14 +663,18 @@
     <div style="background: var(--card-bg); border: 1px solid var(--accent-blue); padding: 28px; border-radius: 14px; width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
         <div class="spinner"></div>
         <div>
-            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem;" id="uploadModalTitle">Uploading Poster</div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;" id="uploadModalDesc">Optimizing & saving to database...</div>
+            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem;">Uploading Poster</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Optimizing & saving to database...</div>
         </div>
     </div>
 </div>
 
 <script>
-    const ADMIN_PASSWORD = "admin123";
+    // Credentials & Roles Config
+    const USERS = {
+        "Jihad": { pass: "jihad123", role: "owner" },
+        "Jarif": { pass: "jarif123", role: "assigner" }
+    };
 
     const firebaseConfig = {
         apiKey: "AIzaSyD2rVSwbwjW7Wp30askxe2Sldxjd7Po9mo",
@@ -629,9 +699,10 @@
     ];
 
     let DESIGNERS = [];
-    let isControllerMode = false;
+    let currentUser = null; // { name: 'Jihad'/'Jarif', role: 'owner'/'assigner' }
     let slotStates = {};
     let currentMonthValue = 'current';
+    let activeTopicSlotId = null;
 
     db.ref("designers_list").on("value", (snapshot) => {
         const val = snapshot.val();
@@ -684,22 +755,19 @@
         }
     });
 
-    function toggleControllerMode() {
-        const btn = document.getElementById('controllerToggle');
-        const adminPanel = document.getElementById('adminPanel');
-        const modal = document.getElementById('adminLoginModal');
-
-        if (!isControllerMode) {
-            modal.style.display = 'flex';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminPasswordInput').focus();
+    function openLoginModal() {
+        if (currentUser) {
+            // Logout if already logged in
+            if (confirm(`Logout from ${currentUser.name}'s account?`)) {
+                logAdminAction("LOGOUT", `${currentUser.name} logged out.`);
+                currentUser = null;
+                updateUIRoles();
+            }
         } else {
-            isControllerMode = false;
-            btn.classList.remove('active');
-            btn.innerHTML = `<i data-lucide="lock"></i> Admin Access`;
-            adminPanel.classList.remove('active');
-            lucide.createIcons();
-            renderSchedule();
+            document.getElementById('adminLoginModal').style.display = 'flex';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginUsername').focus();
         }
     }
 
@@ -707,25 +775,73 @@
         document.getElementById('adminLoginModal').style.display = 'none';
     }
 
-    function verifyAdminPassword() {
-        const userPass = document.getElementById('adminPasswordInput').value;
+    function verifyCredentials() {
+        const uname = document.getElementById('loginUsername').value.trim();
+        const upass = document.getElementById('loginPassword').value;
+
+        if (USERS[uname] && USERS[uname].pass === upass) {
+            currentUser = { name: uname, role: USERS[uname].role };
+            closeLoginModal();
+            updateUIRoles();
+            logAdminAction("LOGIN", `${uname} logged into the system as ${currentUser.role}.`);
+        } else {
+            alert("Invalid Username or Password!");
+            document.getElementById('loginPassword').value = '';
+        }
+    }
+
+    function updateUIRoles() {
         const btn = document.getElementById('controllerToggle');
         const adminPanel = document.getElementById('adminPanel');
-        const modal = document.getElementById('adminLoginModal');
 
-        if (userPass === ADMIN_PASSWORD) {
-            isControllerMode = true;
-            btn.classList.add('active');
-            btn.innerHTML = `<i data-lucide="unlock"></i> Admin Active`;
+        if (!currentUser) {
+            btn.className = "controller-btn";
+            btn.innerHTML = `<i data-lucide="lock"></i> Admin Access`;
+            adminPanel.classList.remove('active');
+        } else if (currentUser.role === 'owner') {
+            btn.className = "controller-btn active-owner";
+            btn.innerHTML = `<i data-lucide="shield-check"></i> Jihad (Owner)`;
             adminPanel.classList.add('active');
-            modal.style.display = 'none';
-        } else {
-            alert("Incorrect Password!");
-            document.getElementById('adminPasswordInput').value = '';
+        } else if (currentUser.role === 'assigner') {
+            btn.className = "controller-btn active-assigner";
+            btn.innerHTML = `<i data-lucide="user-check"></i> Jarif (Assigner)`;
+            adminPanel.classList.remove('active');
         }
         lucide.createIcons();
         renderSchedule();
     }
+
+    // Admin Logs System
+    function logAdminAction(actionType, details) {
+        const logData = {
+            action: actionType,
+            details: details,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            dateString: new Date().toUTCString()
+        };
+        firebase.database().ref("admin_logs").push(logData);
+    }
+
+    db.ref("admin_logs").limitToLast(10).on("value", (snapshot) => {
+        const logsContainer = document.getElementById('adminLogsList');
+        if (!logsContainer) return;
+        logsContainer.innerHTML = '';
+        
+        const val = snapshot.val();
+        if (val) {
+            const logsArray = Object.values(val).reverse();
+            logsArray.forEach(log => {
+                logsContainer.innerHTML += `
+                    <div class="log-item">
+                        <strong style="color: var(--accent-blue);">[${log.action}]</strong> ${log.details} 
+                        <span style="font-size: 0.7rem; float: right; opacity: 0.7;">${new Date(log.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                `;
+            });
+        } else {
+            logsContainer.innerHTML = `<div class="log-item">No activity logs found.</div>`;
+        }
+    });
 
     function renderAdminDesignerTags() {
         const tagContainer = document.getElementById('designerTagList');
@@ -746,19 +862,48 @@
     }
 
     function addDesigner() {
+        if (!currentUser || currentUser.role !== 'owner') return;
         const input = document.getElementById('newDesignerName');
         const name = input.value.trim();
         if (name) {
             DESIGNERS.push(name);
             db.ref("designers_list").set(DESIGNERS);
+            logAdminAction("ADD_DESIGNER", `Added new designer: ${name}`);
             input.value = '';
         }
     }
 
     function deleteDesigner(index) {
+        if (!currentUser || currentUser.role !== 'owner') return;
         if (confirm(`Are you sure you want to remove ${DESIGNERS[index]}?`)) {
+            const removedName = DESIGNERS[index];
             DESIGNERS.splice(index, 1);
             db.ref("designers_list").set(DESIGNERS);
+            logAdminAction("DELETE_DESIGNER", `Removed designer: ${removedName}`);
+        }
+    }
+
+    // Topic Assignment Modal Logic (For Jarif / Jihad)
+    function openTopicModal(slotId, designerName, currentTopic) {
+        activeTopicSlotId = slotId;
+        document.getElementById('topicModalSubtitle').innerText = `Assigning topic for ${designerName}`;
+        document.getElementById('topicInput').value = currentTopic || '';
+        document.getElementById('topicModal').style.display = 'flex';
+        document.getElementById('topicInput').focus();
+    }
+
+    function closeTopicModal() {
+        document.getElementById('topicModal').style.display = 'none';
+        activeTopicSlotId = null;
+    }
+
+    function saveAssignedTopic() {
+        const topic = document.getElementById('topicInput').value.trim();
+        if (activeTopicSlotId) {
+            db.ref("schedule_slots/" + activeTopicSlotId).update({ topic: topic }).then(() => {
+                logAdminAction("ASSIGN_TOPIC", `Topic updated for slot ID: ${activeTopicSlotId}`);
+                closeTopicModal();
+            });
         }
     }
 
@@ -803,7 +948,6 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            // Show Loading Progress Modal
             document.getElementById('uploadProgressModal').style.display = 'flex';
 
             const reader = new FileReader();
@@ -824,10 +968,10 @@
                             approved: false,
                             posterUrl: base64Url
                         });
+                        logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ID: ${slotId}`);
                     } catch (err) {
                         console.error("Firebase Save Error:", err);
                     } finally {
-                        // Hide Loading Progress Modal after completion
                         document.getElementById('uploadProgressModal').style.display = 'none';
                     }
                 };
@@ -840,12 +984,18 @@
     }
 
     function markApproved(slotId) {
-        db.ref("schedule_slots/" + slotId).update({ approved: true });
+        if (!currentUser || currentUser.role !== 'owner') return;
+        db.ref("schedule_slots/" + slotId).update({ approved: true }).then(() => {
+            logAdminAction("APPROVE_SLOT", `Slot ID: ${slotId} was approved.`);
+        });
     }
 
     function resetSlot(slotId) {
+        if (!currentUser || currentUser.role !== 'owner') return;
         if (confirm("Are you sure you want to delete this slot's data and poster?")) {
-            db.ref("schedule_slots/" + slotId).remove().catch((error) => {
+            db.ref("schedule_slots/" + slotId).remove().then(() => {
+                logAdminAction("RESET_SLOT", `Slot ID: ${slotId} was reset/deleted.`);
+            }).catch((error) => {
                 console.error("Error removing slot: ", error);
             });
         }
@@ -864,6 +1014,7 @@
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
+            logAdminAction("DOWNLOAD_POSTER", `Poster downloaded for ${designerName}`);
         } catch (err) {
             const link = document.createElement('a');
             link.href = url;
@@ -910,7 +1061,7 @@
         let currentVisibleIndex = 0;
 
         schedule.forEach((slot) => {
-            const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null };
+            const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null, topic: "" };
 
             if (state.approved) completedCount++;
             else if (state.submitted) pendingCount++;
@@ -932,11 +1083,26 @@
             let statusMarkup = '';
             let actionMarkup = '';
             let cardExtraClass = '';
+            let topicMarkup = '';
+
+            // Render assigned topic for ALL users (Normal users, Jarif, and Jihad) if available
+            if (state.topic) {
+                topicMarkup = `<div class="topic-display"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: ${state.topic}</div>`;
+            } else {
+                topicMarkup = `<div class="topic-display" style="color:var(--text-muted); border-left-color:var(--text-muted);"><i data-lucide="tag" style="width: 12px; display: inline;"></i> Topic: Not Assigned Yet</div>`;
+            }
+
+            // Allow Jarif or Jihad to click and edit/assign topic if slot is unlocked or active
+            if (currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner')) {
+                if (isUnlocked || state.submitted || state.approved) {
+                    topicMarkup = `<div class="topic-display" style="cursor:pointer;" onclick="openTopicModal('${slot.id}', '${slot.assignedDesigner}', '${state.topic || ''}')"><i data-lucide="edit-3" style="width: 12px; display: inline;"></i> ${state.topic ? 'Topic: ' + state.topic : '+ Assign Topic'}</div>`;
+                }
+            }
 
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
                 cardExtraClass = 'faded-slot';
-                if (isControllerMode) {
+                if (currentUser && currentUser.role === 'owner') {
                     actionMarkup = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
                 }
             } else if (isUnlocked || state.submitted || state.approved) {
@@ -944,26 +1110,38 @@
                     statusMarkup = `<span class="status-badge status-revealed">Approved</span>`;
                     cardExtraClass = 'faded-slot';
                     
-                    if (isControllerMode) {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>` : '';
+                    if (currentUser && currentUser.role === 'owner') {
+                        let downloadBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
                         let resetBtn = `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
-                        actionMarkup = `<div style="display:flex; gap:6px;">${downloadBtn}${resetBtn}</div>`;
+                        actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${downloadBtn}${resetBtn}</div>`;
+                    } else if (state.posterUrl) {
+                        // Normal users can also download approved posters if available
+                        actionMarkup = `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>`;
                     }
                 } else if (state.submitted) {
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
                     
-                    let viewBtn = (isControllerMode && state.posterUrl) ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Submit</button>` : '';
-                    let approveBtn = isControllerMode ? `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>` : '';
-                    let resetBtn = isControllerMode ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
+                    let viewBtn = state.posterUrl ? `<button class="btn-action" style="background:#8b5cf6;" onclick="downloadImage('${state.posterUrl}', '${slot.assignedDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                    let approveBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>` : '';
+                    let resetBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
                     
-                    if (viewBtn || approveBtn || resetBtn) {
-                        actionMarkup = `<div style="display:flex; gap:6px;">${viewBtn}${approveBtn}${resetBtn}</div>`;
+                    let actionButtonsHTML = viewBtn;
+                    if (currentUser && currentUser.role === 'owner') {
+                        actionButtonsHTML += approveBtn + resetBtn;
+                    }
+                    if (actionButtonsHTML) {
+                        actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${actionButtonsHTML}</div>`;
                     }
                 } else {
                     statusMarkup = `<span class="status-badge status-revealed">Active Slot</span>`;
                     let uploadBtn = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
-                    let resetBtn = isControllerMode ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
-                    actionMarkup = `<div style="display:flex; gap:6px;">${uploadBtn}${resetBtn}</div>`;
+                    let resetBtn = (currentUser && currentUser.role === 'owner') ? `<button class="btn-action" style="background:var(--accent-red);" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>` : '';
+                    
+                    let actionButtonsHTML = uploadBtn;
+                    if (currentUser && currentUser.role === 'owner') {
+                        actionButtonsHTML += resetBtn;
+                    }
+                    actionMarkup = `<div style="display:flex; gap:6px; flex-wrap:wrap;">${actionButtonsHTML}</div>`;
                 }
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
@@ -979,6 +1157,7 @@
                         <span>${slot.dayName}</span>
                     </div>
                     <div class="designer-name">${(isUnlocked || state.submitted || state.approved || isAutoCancelled) ? slot.assignedDesigner : '••••••••••••'}</div>
+                    ${topicMarkup}
                     <div class="card-bottom">
                         ${statusMarkup}
                         ${actionMarkup}
