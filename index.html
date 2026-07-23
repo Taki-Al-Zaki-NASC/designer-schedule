@@ -1100,47 +1100,74 @@
         return daysUntil <= UNLOCK_WINDOW_DAYS;
     }
 
-    function triggerFileUpload(slotId) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/png, image/jpeg, image/webp';
+    function getPosterUrls(state = {}) {
+        const explicitList = Array.isArray(state.posterUrls) ? state.posterUrls.filter(Boolean) : [];
+        if (explicitList.length > 0) return explicitList;
+        if (state.posterUrl) return [state.posterUrl];
+        return [];
+    }
 
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    function buildPosterDownloadButtons(posterUrls, designerName) {
+        if (!posterUrls.length) return '';
+        return posterUrls.map((url, index) => {
+            const safeUrl = String(url).replace(/'/g, "\\'");
+            const label = posterUrls.length > 1 ? `Poster ${index + 1}` : 'Download';
+            return `<button class="btn-action btn-download" onclick="downloadImage('${safeUrl}', '${designerName}', ${index + 1})"><i data-lucide="download"></i> ${label}</button>`;
+        }).join('');
+    }
 
-            document.getElementById('uploadProgressModal').classList.add('open');
-
+    function convertImageToBase64(file) {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = async (event) => {
+            reader.onload = (event) => {
                 const img = new Image();
-                img.onload = async () => {
+                img.onload = () => {
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
-
-                    const base64Url = canvas.toDataURL('image/jpeg', 0.90);
-
-                    try {
-                        await db.ref("schedule_slots/" + slotId).update({
-                            submitted: true,
-                            approved: false,
-                            posterUrl: base64Url
-                        });
-                        logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ID: ${slotId}`);
-                        showToast('Poster uploaded — pending review.', 'success');
-                    } catch (err) {
-                        console.error("Firebase Save Error:", err);
-                        showToast('Could not upload poster. Please try again.', 'error');
-                    } finally {
-                        document.getElementById('uploadProgressModal').classList.remove('open');
-                    }
+                    resolve(canvas.toDataURL('image/jpeg', 0.90));
                 };
+                img.onerror = reject;
                 img.src = event.target.result;
             };
+            reader.onerror = reject;
             reader.readAsDataURL(file);
+        });
+    }
+
+    async function triggerFileUpload(slotId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/png, image/jpeg, image/webp';
+
+        input.onchange = async (e) => {
+            const files = Array.from(e.target.files || []).filter(file => file && file.type.startsWith('image/'));
+            if (!files.length) return;
+
+            document.getElementById('uploadProgressModal').classList.add('open');
+
+            try {
+                const uploadedPosterUrls = await Promise.all(files.map(convertImageToBase64));
+                const existingPosterUrls = getPosterUrls(slotStates[slotId] || {});
+                const nextPosterUrls = [...existingPosterUrls, ...uploadedPosterUrls];
+
+                await db.ref("schedule_slots/" + slotId).update({
+                    submitted: true,
+                    approved: false,
+                    posterUrl: nextPosterUrls[nextPosterUrls.length - 1] || null,
+                    posterUrls: nextPosterUrls
+                });
+                logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ID: ${slotId}`);
+                showToast('Poster uploaded — pending review.', 'success');
+            } catch (err) {
+                console.error("Firebase Save Error:", err);
+                showToast('Could not upload poster. Please try again.', 'error');
+            } finally {
+                document.getElementById('uploadProgressModal').classList.remove('open');
+            }
         };
 
         input.click();
@@ -1148,7 +1175,7 @@
 
     function markApproved(slotId) {
         if (!currentUser || currentUser.role !== 'owner') return;
-        db.ref("schedule_slots/" + slotId).update({ approved: true }).then(() => {
+        db.ref("schedule_slots/" + slotId).update({ approved: true, submitted: true }).then(() => {
             logAdminAction("APPROVE_SLOT", `Slot ID: ${slotId} was approved.`);
             showToast('Slot approved.', 'success');
         });
@@ -1156,19 +1183,26 @@
 
     async function resetSlot(slotId) {
         if (!currentUser || currentUser.role !== 'owner') return;
-        const ok = await showConfirm("Delete this slot's submission data and poster? This can't be undone.", { title: 'Reset slot', okLabel: 'Delete' });
+        const ok = await showConfirm("Remove this slot's poster image(s) only? The slot approval state will be kept intact.", { title: 'Reset image', okLabel: 'Delete image' });
         if (ok) {
-            db.ref("schedule_slots/" + slotId).remove().then(() => {
-                logAdminAction("RESET_SLOT", `Slot ID: ${slotId} was reset/deleted.`);
-                showToast('Slot reset.', 'info');
+            const slotState = slotStates[slotId] || {};
+            const keepApproved = Boolean(slotState.approved);
+            db.ref("schedule_slots/" + slotId).update({
+                submitted: keepApproved,
+                approved: keepApproved,
+                posterUrl: null,
+                posterUrls: []
+            }).then(() => {
+                logAdminAction("RESET_IMAGE", `Poster image(s) cleared for slot ID: ${slotId}.`);
+                showToast('Poster image cleared.', 'info');
             }).catch((error) => {
-                console.error("Error removing slot: ", error);
-                showToast('Could not reset slot.', 'error');
+                console.error("Error clearing poster image: ", error);
+                showToast('Could not clear poster image.', 'error');
             });
         }
     }
 
-    async function downloadImage(url, designerName) {
+    async function downloadImage(url, designerName, posterNumber = 1) {
         try {
             const response = await fetch(url);
             const blob = await response.blob();
@@ -1176,16 +1210,16 @@
 
             const link = document.createElement('a');
             link.href = blobUrl;
-            link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
+            link.download = `Poster_${designerName.replace(/\s+/g, '_')}_${posterNumber}.jpg`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
-            logAdminAction("DOWNLOAD_POSTER", `Poster downloaded for ${designerName}`);
+            logAdminAction("DOWNLOAD_POSTER", `Poster ${posterNumber} downloaded for ${designerName}`);
         } catch (err) {
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Poster_${designerName.replace(/\s+/g, '_')}.jpg`;
+            link.download = `Poster_${designerName.replace(/\s+/g, '_')}_${posterNumber}.jpg`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1245,7 +1279,8 @@
         let cardsHtml = '';
 
         schedule.forEach((slot) => {
-            const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null, topic: "" };
+            const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null, posterUrls: [], topic: "" };
+            const posterUrls = getPosterUrls(state);
 
             if (state.approved) completedCount++;
             else if (state.submitted) pendingCount++;
@@ -1298,8 +1333,8 @@
                     cardExtraClass = 'faded-slot';
 
                     if (isOwner) {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset</button>`;
+                        let downloadBtn = buildPosterDownloadButtons(posterUrls, jsDesigner);
+                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
                         actionMarkup = `<div class="action-group">${downloadBtn}${resetBtn}</div>`;
                     }
                     // Downloads are owner-only; assigner and regular visitors see the status only.
@@ -1307,9 +1342,9 @@
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
 
                     if (isOwner) {
-                        let downloadBtn = state.posterUrl ? `<button class="btn-action btn-download" onclick="downloadImage('${state.posterUrl}', '${jsDesigner}')"><i data-lucide="download"></i> Download</button>` : '';
+                        let downloadBtn = buildPosterDownloadButtons(posterUrls, jsDesigner);
                         let approveBtn = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
+                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
                         actionMarkup = `<div class="action-group">${downloadBtn}${approveBtn}${resetBtn}</div>`;
                     }
                 } else {
@@ -1317,7 +1352,7 @@
                     statusMarkup = `<span class="status-badge status-active"><span class="pulse-dot"></span>Active Slot</span>`;
                     let actionButtonsHTML = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
                     if (isOwner) {
-                        actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i></button>`;
+                        actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
                     }
                     actionMarkup = `<div class="action-group">${actionButtonsHTML}</div>`;
                 }
