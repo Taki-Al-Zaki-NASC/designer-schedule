@@ -1388,54 +1388,43 @@
 
     // ─── Deterministic Round-Robin Schedule Generator ──────────────────────
     function generateMonthSchedule(year, monthIndex) {
-        if (!DESIGNERS.length) return [];
+    if (!DESIGNERS.length) return [];
 
-        const slots = [];
-        const start = new Date(year, monthIndex, 1);
-        const end = new Date(year, monthIndex + 1, 0);
+    const slots = [];
+    const start = new Date(year, monthIndex, 1);
+    const end = new Date(year, monthIndex + 1, 0);
 
-        const date = new Date(start);
-        const slotDates = [];
-        while (date <= end) {
-            const d = date.getDay();
-            if (d === 5 || d === 6) slotDates.push(new Date(date));
-            date.setDate(date.getDate() + 1);
-        }
-
-        let seq = (year * 12) + monthIndex;
-        let lastAssigned = null;
-        let offset = 0;
-
-        for (const dt of slotDates) {
-            const slotId = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
-            const saved = slotStates[slotId] || {};
-            let assigned;
-
-            if (saved.assignedDesigner) {
-                assigned = saved.assignedDesigner;
-            } else {
-                let idx = (seq + offset) % DESIGNERS.length;
-                assigned = DESIGNERS[idx];
-                if (assigned === lastAssigned && DESIGNERS.length > 1) {
-                    offset++;
-                    idx = (seq + offset) % DESIGNERS.length;
-                    assigned = DESIGNERS[idx];
-                }
-                offset++;
-                db.ref("schedule_slots/" + slotId).update({ assignedDesigner: assigned });
-            }
-            lastAssigned = assigned;
-
-            slots.push({
-                id: slotId,
-                date: new Date(dt),
-                dayName: dt.getDay() === 5 ? "Friday" : "Saturday",
-                assignedDesigner: assigned
-            });
-        }
-        return slots;
+    const date = new Date(start);
+    const slotDates = [];
+    while (date <= end) {
+        const d = date.getDay();
+        if (d === 5 || d === 6) slotDates.push(new Date(date));
+        date.setDate(date.getDate() + 1);
     }
 
+    let globalIndex = 0;
+
+    for (const dt of slotDates) {
+        const slotId = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+        
+        // Strict sequence mapping (Database-er purono save ignore korbe jate sequence break na hoy)
+        let idx = globalIndex % DESIGNERS.length;
+        let assigned = DESIGNERS[idx];
+
+        // Optional: Database e update kore dite paren jate pore sync thake
+        db.ref("schedule_slots/" + slotId).update({ assignedDesigner: assigned });
+
+        globalIndex++;
+
+        slots.push({
+            id: slotId,
+            date: new Date(dt),
+            dayName: dt.getDay() === 5 ? "Friday" : "Saturday",
+            assignedDesigner: assigned
+        });
+    }
+    return slots;
+}
     // ─── Filter slots that are on or after SCHEDULE_START ──────────────────
     function filterSchedule(schedule) {
         const start = new Date(SCHEDULE_START);
