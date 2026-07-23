@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Designer Slot Distribution & Management System</title>
-    <link id="faviconLink" rel="icon" type="image/png" href="favicon.jpg">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UYFSR · Schedule &amp; Submission Dashboard</title>
+    <link id="faviconLink" rel="icon" type="image/png" href="favicon.jpg" />
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js">
+    </script>
 
-    <!-- Type system: Space Grotesk (display), Inter (UI), JetBrains Mono (data/time) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
     <style>
+        /* ----- palette (unchanged) ----- */
         :root {
-            /* Palette */
             --void: #090b10;
             --panel: #12161f;
             --panel-hi: #171c28;
@@ -43,26 +46,43 @@
             --r-sm: 8px;
             --r-md: 12px;
             --r-lg: 16px;
-            --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.55);
-            --shadow-pop: 0 20px 60px -12px rgba(0,0,0,0.7);
+            --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+            --shadow-pop: 0 20px 60px -12px rgba(0, 0, 0, 0.7);
 
             --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
             --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', ui-monospace, monospace;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-ui); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-ui);
+        }
 
-        html { scrollbar-color: #2a3242 transparent; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2a3242; border-radius: 8px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3a4356; }
+        html {
+            scrollbar-color: #2a3242 transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3242;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a4356;
+        }
 
         body {
             background:
-                radial-gradient(1100px 480px at 12% -8%, rgba(47,123,255,0.10), transparent 60%),
-                radial-gradient(900px 420px at 100% 0%, rgba(139,107,240,0.08), transparent 55%),
+                radial-gradient(1100px 480px at 12% -8%, rgba(47, 123, 255, 0.10), transparent 60%),
+                radial-gradient(900px 420px at 100% 0%, rgba(139, 107, 240, 0.08), transparent 55%),
                 var(--void);
             color: var(--ink);
             min-height: 100vh;
@@ -72,9 +92,15 @@
             overflow-x: hidden;
         }
 
-        button, input { font-family: inherit; }
-
-        :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 6px; }
+        button,
+        input {
+            font-family: inherit;
+        }
+        :focus-visible {
+            outline: 2px solid var(--signal);
+            outline-offset: 2px;
+            border-radius: 6px;
+        }
 
         .app-container {
             width: 100%;
@@ -86,12 +112,18 @@
             animation: riseIn 0.5s ease both;
         }
 
-        @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
         }
 
-        /* ---------- Navbar ---------- */
+        /* ----- Navbar (unchanged) ----- */
         .top-navbar {
             background: linear-gradient(180deg, var(--panel-hi), var(--panel));
             border: 1px solid var(--line);
@@ -105,15 +137,38 @@
             box-shadow: var(--shadow-card);
         }
 
-        .brand-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
 
-        .brand-mark { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
-        .brand-logo { height: 40px; width: 40px; object-fit: contain; display: block; border-radius: 8px; }
+        .brand-mark {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+        .brand-logo {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
+            display: block;
+            border-radius: 8px;
+        }
         .brand-logo-fallback {
-            width: 40px; height: 40px; border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: linear-gradient(135deg, var(--signal), var(--violet));
-            display: none; align-items: center; justify-content: center;
-            font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
         }
 
         .brand-title h1 {
@@ -125,13 +180,17 @@
             min-width: 0;
             overflow-wrap: break-word;
         }
-        .brand-title h1 .brand-sub { color: var(--fog); font-weight: 500; font-size: 0.95rem; }
+        .brand-title h1 .brand-sub {
+            color: var(--fog);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
 
         .system-time {
             font-family: var(--font-mono);
             color: var(--signal-hover);
             background: var(--signal-dim);
-            border: 1px solid rgba(47,123,255,0.25);
+            border: 1px solid rgba(47, 123, 255, 0.25);
             padding: 7px 14px;
             border-radius: 20px;
             font-size: 0.82rem;
@@ -139,7 +198,11 @@
             letter-spacing: 0.02em;
         }
 
-        .role-bar { display: flex; align-items: center; gap: 8px; }
+        .role-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .controller-btn {
             background: var(--signal);
@@ -163,10 +226,10 @@
         .controller-btn.active-assigner { background: var(--amber); color: #201200; }
         .controller-btn.active-assigner:hover { background: #ffb648; }
 
-        /* ---------- Admin Panel ---------- */
+        /* ----- Admin Panel (unchanged) ----- */
         .admin-panel {
             background: var(--panel);
-            border: 1px solid rgba(47,123,255,0.35);
+            border: 1px solid rgba(47, 123, 255, 0.35);
             border-radius: var(--r-lg);
             padding: 22px;
             display: none;
@@ -282,8 +345,12 @@
         .log-item .log-time { font-size: 0.68rem; opacity: 0.65; white-space: nowrap; }
         .log-item .log-detail { flex: 1; color: var(--fog); min-width: 140px; }
 
-        /* ---------- Stats ---------- */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        /* ----- Stats (unchanged) ----- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
 
         .stat-card {
             background: var(--panel);
@@ -306,11 +373,28 @@
         .donut-fill-orange { stroke: var(--amber); stroke-linecap: round; }
         .donut-fill-purple { stroke: var(--violet); stroke-linecap: round; }
 
-        .stat-info h4 { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--fog); letter-spacing: 0.06em; }
-        .stat-info .stat-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--ink); margin-top: 2px; line-height: 1; }
+        .stat-info h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--fog);
+            letter-spacing: 0.06em;
+        }
+        .stat-info .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-top: 2px;
+            line-height: 1;
+        }
 
-        /* ---------- Controls ---------- */
-        .controls-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; }
+        /* ----- Controls (unchanged) ----- */
+        .controls-row {
+            display: grid;
+            grid-template-columns: 1fr 220px;
+            gap: 14px;
+        }
         @media (max-width: 640px) { .controls-row { grid-template-columns: 1fr; } }
 
         .search-box {
@@ -325,57 +409,160 @@
         }
         .search-box:focus-within { border-color: var(--signal); }
         .search-box i { color: var(--fog); width: 17px; height: 17px; flex-shrink: 0; }
-        .search-box input { background: transparent; border: none; outline: none; color: var(--ink); width: 100%; font-size: 0.9rem; min-width: 0; }
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--ink);
+            width: 100%;
+            font-size: 0.9rem;
+            min-width: 0;
+        }
         .search-box input::placeholder { color: var(--fog-dim); }
 
         .search-clear {
-            background: transparent; border: none; color: var(--fog); cursor: pointer;
-            display: none; align-items: center; padding: 3px; border-radius: 50%; flex-shrink: 0;
+            background: transparent;
+            border: none;
+            color: var(--fog);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            padding: 3px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
         .search-clear.visible { display: flex; }
         .search-clear:hover { color: var(--ink); background: var(--line-soft); }
         .search-clear i { width: 14px; height: 14px; }
 
-        .custom-dropdown { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); user-select: none; }
-        .dropdown-select-btn { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; color: var(--ink); cursor: pointer; gap: 8px; }
+        .custom-dropdown {
+            position: relative;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            user-select: none;
+        }
+        .dropdown-select-btn {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--ink);
+            cursor: pointer;
+            gap: 8px;
+        }
         .dropdown-select-btn .dd-left { display: flex; align-items: center; gap: 8px; }
         .dropdown-select-btn i { color: var(--fog); width: 16px; height: 16px; }
         #dropdownChevron { transition: transform 0.15s ease; }
         .custom-dropdown[aria-expanded="true"] #dropdownChevron { transform: rotate(180deg); }
 
         .dropdown-options {
-            position: absolute; top: calc(100% + 6px); left: 0; width: 100%;
-            background: var(--panel-hi); border: 1px solid var(--line); border-radius: var(--r-md);
-            box-shadow: var(--shadow-pop); display: none; flex-direction: column; z-index: 100; overflow: hidden;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            background: var(--panel-hi);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-pop);
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
         }
         .dropdown-options.open { display: flex; }
-        .dropdown-option { padding: 11px 16px; font-size: 0.88rem; color: var(--fog); cursor: pointer; transition: background 0.12s ease, color 0.12s ease; }
+        .dropdown-option {
+            padding: 11px 16px;
+            font-size: 0.88rem;
+            color: var(--fog);
+            cursor: pointer;
+            transition: background 0.12s ease, color 0.12s ease;
+        }
         .dropdown-option:hover { background: var(--signal-dim); color: var(--ink); }
         .dropdown-option.selected { color: var(--signal-hover); font-weight: 600; }
 
+        /* ----- Lookup (enhanced for two slots) ----- */
         .lookup-result {
-            background: var(--panel); border: 1px solid var(--signal); border-radius: var(--r-md);
-            padding: 14px 18px; display: none; justify-content: space-between; align-items: center;
-            gap: 10px; flex-wrap: wrap; animation: riseIn 0.2s ease both;
+            background: var(--panel);
+            border: 1px solid var(--signal);
+            border-radius: var(--r-md);
+            padding: 14px 18px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            animation: riseIn 0.2s ease both;
         }
         .lookup-result.active { display: flex; }
-        .lookup-result strong { font-family: var(--font-display); }
-        .lookup-result p { font-size: 0.83rem; color: var(--fog); margin-top: 2px; }
-        .lookup-countdown { font-family: var(--font-mono); font-weight: 700; color: var(--amber); white-space: nowrap; }
+        .lookup-result .lookup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .lookup-result strong {
+            font-family: var(--font-display);
+        }
+        .lookup-result .lookup-line {
+            font-size: 0.83rem;
+            color: var(--fog);
+        }
+        .lookup-countdown {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--amber);
+            white-space: nowrap;
+        }
+        .lookup-status {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: inline-block;
+        }
+        .lookup-status.approved { background: var(--emerald-dim); color: var(--emerald); }
+        .lookup-status.submitted { background: var(--amber-dim); color: var(--amber); }
+        .lookup-divider {
+            height: 1px;
+            background: var(--line);
+            opacity: 0.5;
+        }
 
-        /* ---------- Schedule Grid ---------- */
+        /* ----- Schedule Grid (unchanged) ----- */
         .grid-header {
-            font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--fog);
-            text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--fog);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .grid-header i { width: 15px; height: 15px; }
 
-        .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 16px;
+        }
 
         .slot-card {
-            background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
-            padding: 18px; display: flex; flex-direction: column; gap: 14px; position: relative;
-            box-shadow: var(--shadow-card); transition: border-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
             min-width: 0;
         }
         .slot-card:hover { transform: translateY(-2px); }
@@ -383,43 +570,96 @@
         .slot-card.faded-slot:hover { opacity: 0.9; }
         .slot-card.locked-slot { opacity: 0.58; filter: grayscale(0.22); }
         .slot-card.locked-slot:hover { opacity: 0.82; }
-        .slot-card.active-reveal { border-color: rgba(47,123,255,0.4); }
-        .slot-card.is-live { border-color: rgba(34,197,129,0.45); }
+        .slot-card.active-reveal { border-color: rgba(47, 123, 255, 0.4); }
+        .slot-card.is-live { border-color: rgba(34, 197, 129, 0.45); }
 
-        .card-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--fog); flex-wrap: wrap; gap: 4px; }
-        .slot-date { font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--fog);
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .slot-date {
+            font-weight: 600;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
         .slot-date i { width: 14px; height: 14px; color: var(--signal-hover); }
 
-        /* Ticket-stub perforation divider */
-        .ticket-divider { position: relative; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); margin: 0 -18px; }
+        .ticket-divider {
+            position: relative;
+            height: 1px;
+            background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+            margin: 0 -18px;
+        }
         .ticket-divider::before, .ticket-divider::after {
-            content: ""; position: absolute; top: 50%; transform: translateY(-50%);
-            width: 16px; height: 16px; background: var(--void); border-radius: 50%;
+            content: "";
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--void);
+            border-radius: 50%;
         }
         .ticket-divider::before { left: -8px; }
         .ticket-divider::after { right: -8px; }
 
-        .designer-name { font-family: var(--font-display); font-size: 1.12rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; word-break: break-word; }
+        .designer-name {
+            font-family: var(--font-display);
+            font-size: 1.12rem;
+            font-weight: 600;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            word-break: break-word;
+        }
         .designer-name.locked-name { color: var(--fog-dim); }
         .designer-name .lock-icon { color: var(--fog-dim); width: 16px; height: 16px; flex-shrink: 0; }
 
         .topic-display {
-            font-size: 0.82rem; color: var(--amber); background: var(--amber-dim); padding: 8px 10px;
-            border-radius: var(--r-sm); border-left: 3px solid var(--amber);
-            word-break: break-word; overflow-wrap: break-word; white-space: pre-wrap;
-            display: flex; align-items: flex-start; gap: 6px;
+            font-size: 0.82rem;
+            color: var(--amber);
+            background: var(--amber-dim);
+            padding: 8px 10px;
+            border-radius: var(--r-sm);
+            border-left: 3px solid var(--amber);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
         }
         .topic-display i { width: 13px; height: 13px; margin-top: 2px; flex-shrink: 0; }
         .topic-display.editable { cursor: pointer; transition: filter 0.15s ease; }
         .topic-display.editable:hover { filter: brightness(1.2); }
         .topic-display.unassigned { color: var(--fog); background: var(--line-soft); border-left-color: var(--fog-dim); }
 
-        .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
         .status-badge {
-            padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
-            display: inline-flex; align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
         }
         .status-approved { background: var(--emerald-dim); color: var(--emerald); }
         .status-active { background: var(--signal-dim); color: var(--signal-hover); }
@@ -427,25 +667,40 @@
         .status-locked { background: var(--line-soft); color: var(--fog); }
         .status-cancelled { background: var(--coral-dim); color: var(--coral); }
 
-        /* Live pulse indicator for open/active slots */
         .pulse-dot {
-            display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-            background: var(--emerald); margin-right: 6px; flex-shrink: 0;
-            box-shadow: 0 0 0 0 rgba(34,197,129,0.6);
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--emerald);
+            margin-right: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 0 rgba(34, 197, 129, 0.6);
             animation: pulseGlow 1.7s ease-out infinite;
         }
         @keyframes pulseGlow {
-            0%   { box-shadow: 0 0 0 0 rgba(34,197,129,0.55); }
-            70%  { box-shadow: 0 0 0 8px rgba(34,197,129,0); }
-            100% { box-shadow: 0 0 0 0 rgba(34,197,129,0); }
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 129, 0.55); }
+            70% { box-shadow: 0 0 0 8px rgba(34, 197, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 129, 0); }
         }
 
         .action-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .btn-action {
-            background: var(--signal); border: none; color: #fff; padding: 7px 12px; border-radius: var(--r-sm);
-            font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;
-            transition: background 0.15s ease, transform 0.1s ease; text-decoration: none; white-space: nowrap;
+            background: var(--signal);
+            border: none;
+            color: #fff;
+            padding: 7px 12px;
+            border-radius: var(--r-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s ease, transform 0.1s ease;
+            text-decoration: none;
+            white-space: nowrap;
         }
         .btn-action i { width: 13px; height: 13px; }
         .btn-action:hover { background: var(--signal-hover); }
@@ -457,47 +712,94 @@
         .btn-danger { background: var(--coral); }
         .btn-danger:hover { background: #ff6b70; }
 
-        .locked-note { font-size: 0.78rem; color: var(--fog-dim); display: flex; align-items: center; gap: 6px; }
+        .locked-note {
+            font-size: 0.78rem;
+            color: var(--fog-dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
         .locked-note i { width: 13px; height: 13px; flex-shrink: 0; }
 
         .empty-state {
-            grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--fog);
-            border: 1px dashed var(--line); border-radius: var(--r-lg);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--fog);
+            border: 1px dashed var(--line);
+            border-radius: var(--r-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
         .empty-state i { width: 34px; height: 34px; color: var(--fog-dim); }
         .empty-state strong { color: var(--ink); font-family: var(--font-display); font-size: 1rem; }
 
         .skeleton-card {
-            background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
-            padding: 18px; height: 168px; display: flex; flex-direction: column; gap: 14px;
-            overflow: hidden; position: relative;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 18px;
+            height: 168px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+            position: relative;
         }
         .skeleton-bar {
             border-radius: 6px;
             background: linear-gradient(90deg, var(--line-soft) 25%, #232a38 37%, var(--line-soft) 63%);
-            background-size: 400% 100%; animation: shimmer 1.4s ease infinite;
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
         }
         @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
-        /* ---------- Modals ---------- */
+        /* ----- Modals (unchanged) ----- */
         .modal-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(5,7,11,0.72);
-            backdrop-filter: blur(6px); z-index: 1000; justify-content: center; align-items: center; padding: 16px;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 7, 11, 0.72);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
         }
         .modal-overlay.open { display: flex; }
 
         .modal-box {
-            background: var(--panel-hi); border: 1px solid var(--line); padding: 26px; border-radius: var(--r-lg);
-            width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px;
-            box-shadow: var(--shadow-pop); animation: popIn 0.18s ease both;
+            background: var(--panel-hi);
+            border: 1px solid var(--line);
+            padding: 26px;
+            border-radius: var(--r-lg);
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow-pop);
+            animation: popIn 0.18s ease both;
         }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-        .modal-box.accent-blue { border-color: rgba(47,123,255,0.4); }
-        .modal-box.accent-amber { border-color: rgba(245,165,36,0.4); }
-        .modal-box.accent-coral { border-color: rgba(242,85,90,0.4); }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-box.accent-blue { border-color: rgba(47, 123, 255, 0.4); }
+        .modal-box.accent-amber { border-color: rgba(245, 165, 36, 0.4); }
+        .modal-box.accent-coral { border-color: rgba(242, 85, 90, 0.4); }
 
-        .modal-title { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 1.05rem; display: flex; align-items: center; gap: 9px; }
+        .modal-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--ink);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
         .modal-title i { width: 19px; height: 19px; }
         .modal-subtitle { font-size: 0.83rem; color: var(--fog); margin-top: -6px; }
         .modal-message { font-size: 0.9rem; color: var(--fog); line-height: 1.5; }
@@ -505,15 +807,29 @@
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         .form-group label { font-size: 0.78rem; color: var(--fog); font-weight: 500; }
         .form-group input {
-            background: var(--void); border: 1px solid var(--line); border-radius: var(--r-sm);
-            padding: 11px 14px; color: var(--ink); outline: none; width: 100%; font-size: 0.9rem;
+            background: var(--void);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 11px 14px;
+            color: var(--ink);
+            outline: none;
+            width: 100%;
+            font-size: 0.9rem;
             transition: border-color 0.15s ease;
         }
         .form-group input:focus { border-color: var(--signal); }
 
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; flex-wrap: wrap; }
 
-        .btn-modal { border: none; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: background 0.15s ease, transform 0.1s ease; }
+        .btn-modal {
+            border: none;
+            padding: 9px 18px;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
         .btn-modal:active { transform: scale(0.97); }
         .btn-modal-ghost { background: transparent; border: 1px solid var(--line); color: var(--fog); }
         .btn-modal-ghost:hover { color: var(--ink); border-color: #3a4356; }
@@ -524,17 +840,42 @@
         .btn-modal-danger { background: var(--coral); color: #fff; }
         .btn-modal-danger:hover { background: #ff6b70; }
 
-        .spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top: 3px solid var(--signal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--line);
+            border-top: 3px solid var(--signal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .toast-stack {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1200;
-            display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 380px; padding: 0 16px;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 380px;
+            padding: 0 16px;
         }
         .toast {
-            background: var(--panel-hi); border: 1px solid var(--line); border-left: 3px solid var(--signal);
-            border-radius: var(--r-sm); padding: 12px 14px; font-size: 0.85rem; color: var(--ink);
-            display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-pop); animation: toastIn 0.2s ease both;
+            background: var(--panel-hi);
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--signal);
+            border-radius: var(--r-sm);
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-pop);
+            animation: toastIn 0.2s ease both;
         }
         .toast.success { border-left-color: var(--emerald); }
         .toast.error { border-left-color: var(--coral); }
@@ -542,11 +883,14 @@
         .toast.success i { color: var(--emerald); }
         .toast.error i { color: var(--coral); }
         .toast.info i { color: var(--signal-hover); }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .toast.leaving { animation: toastOut 0.18s ease both; }
         @keyframes toastOut { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
 
-        /* ---------- Mobile responsiveness ---------- */
+        /* ----- Responsive (unchanged) ----- */
         @media (max-width: 620px) {
             body { padding: 18px 10px 50px; }
             .top-navbar { flex-direction: column; align-items: stretch; text-align: center; }
@@ -569,82 +913,85 @@
 </head>
 <body>
 
-<div class="app-container">
-    <!-- Navbar -->
-    <header class="top-navbar">
-        <div class="brand-title">
-            <div class="brand-mark">
-                <img src="logo.png" alt="UYFSR Logo" class="brand-logo" id="brandLogoImg"
-                     onerror="this.style.display='none'; document.getElementById('brandLogoFallback').style.display='flex';">
-                <div class="brand-logo-fallback" id="brandLogoFallback">UY</div>
+    <div class="app-container">
+        <!-- Navbar -->
+        <header class="top-navbar">
+            <div class="brand-title">
+                <div class="brand-mark">
+                    <img src="logo.png" alt="UYFSR Logo" class="brand-logo" id="brandLogoImg"
+                    onerror="this.style.display='none'; document.getElementById('brandLogoFallback').style.display='flex';" />
+                    <div class="brand-logo-fallback" id="brandLogoFallback">UY</div>
+                </div>
+                <h1>Schedule &amp; Submission <span class="brand-sub">Dashboard</span></h1>
             </div>
-            <h1>Schedule &amp; Submission <span class="brand-sub">Dashboard</span></h1>
-        </div>
-        <div class="system-time" id="systemClock">00:00:00 UTC</div>
-        <div class="role-bar">
-            <button id="controllerToggle" class="controller-btn" onclick="openLoginModal()">
-                <i data-lucide="lock"></i> Admin Access
-            </button>
-        </div>
-    </header>
+            <div class="system-time" id="systemClock">00:00:00 UTC</div>
+            <div class="role-bar">
+                <button id="controllerToggle" class="controller-btn" onclick="openLoginModal()">
+                    <i data-lucide="lock"></i> Admin Access
+                </button>
+            </div>
+        </header>
 
-    <!-- Admin Management Panel -->
-    <div id="adminPanel" class="admin-panel">
-        <div class="admin-panel-header"><i data-lucide="shield-alert"></i> Controller Control Panel</div>
-        <div class="add-user-box">
-            <input type="text" id="newDesignerName" placeholder="Enter new designer full name..." onkeydown="if(event.key==='Enter') addDesigner()">
-            <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
-        </div>
-        <div class="designer-list-tags" id="designerTagList"></div>
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="admin-panel">
+            <div class="admin-panel-header"><i data-lucide="shield-alert"></i> Controller Control Panel</div>
+            <div class="add-user-box">
+                <input type="text" id="newDesignerName" placeholder="Enter new designer full name..." onkeydown="if(event.key==='Enter') addDesigner()" />
+                <button class="btn-add" onclick="addDesigner()"><i data-lucide="plus"></i> Add Designer</button>
+            </div>
+            <div class="designer-list-tags" id="designerTagList"></div>
 
-        <div class="admin-panel-header" style="margin-top: 4px;"><i data-lucide="activity"></i> System Audit Logs</div>
-        <div class="logs-box" id="adminLogsList">
-            <div class="log-item"><span class="log-detail">Loading logs...</span></div>
-        </div>
-    </div>
+            <div class="admin-panel-header" style="margin-top:10px;"><i data-lucide="move"></i> Manual Sequence Control</div>
+            <div class="empty-hint">Drag the handles below to reorder upcoming slot assignments. The rotation auto-generates indefinitely if left untouched.</div>
+            <div class="designer-list-tags" id="adminScheduleSequenceList" style="max-height:200px;overflow-y:auto;padding:6px;background:var(--void);border-radius:var(--r-sm);border:1px solid var(--line);display:flex;flex-direction:column;gap:4px;"></div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <svg class="donut-chart" viewBox="0 0 36 36">
-                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
-                <circle class="donut-fill-blue" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
-            </svg>
-            <div class="stat-info"><h4>Total Slots</h4><div class="stat-value" id="statTotal">0</div></div>
-        </div>
-        <div class="stat-card">
-            <svg class="donut-chart" viewBox="0 0 36 36">
-                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
-                <circle class="donut-fill-green" id="donutCompleted" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
-            </svg>
-            <div class="stat-info"><h4>Completed</h4><div class="stat-value" id="statCompleted">0</div></div>
-        </div>
-        <div class="stat-card">
-            <svg class="donut-chart" viewBox="0 0 36 36">
-                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
-                <circle class="donut-fill-orange" id="donutPending" cx="18" cy="18" r="15.915" stroke-dasharray="0 100"/>
-            </svg>
-            <div class="stat-info"><h4>Pending Review</h4><div class="stat-value" id="statPending">0</div></div>
-        </div>
-        <div class="stat-card">
-            <svg class="donut-chart" viewBox="0 0 36 36">
-                <circle class="donut-bg" cx="18" cy="18" r="15.915"/>
-                <circle class="donut-fill-purple" id="donutRemaining" cx="18" cy="18" r="15.915" stroke-dasharray="100 0"/>
-            </svg>
-            <div class="stat-info"><h4>Remaining</h4><div class="stat-value" id="statRemaining">0</div></div>
-        </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="controls-row">
-        <div class="search-box">
-            <i data-lucide="search"></i>
-            <input type="text" id="designerSearch" placeholder="Search designer assignment..." oninput="handleSearch()" aria-label="Search designer assignment">
-            <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" aria-label="Clear search"><i data-lucide="x"></i></button>
+            <div class="admin-panel-header" style="margin-top:4px;"><i data-lucide="activity"></i> System Audit Logs</div>
+            <div class="logs-box" id="adminLogsList">
+                <div class="log-item"><span class="log-detail">Loading logs…</span></div>
+            </div>
         </div>
 
-        <div class="custom-dropdown" id="monthDropdown" role="listbox" tabindex="0" aria-expanded="false"
-             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCustomDropdown();}">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <svg class="donut-chart" viewBox="0 0 36 36">
+                    <circle class="donut-bg" cx="18" cy="18" r="15.915" />
+                    <circle class="donut-fill-blue" cx="18" cy="18" r="15.915" stroke-dasharray="100 0" />
+                </svg>
+                <div class="stat-info"><h4>Total Slots</h4><div class="stat-value" id="statTotal">0</div></div>
+            </div>
+            <div class="stat-card">
+                <svg class="donut-chart" viewBox="0 0 36 36">
+                    <circle class="donut-bg" cx="18" cy="18" r="15.915" />
+                    <circle class="donut-fill-green" id="donutCompleted" cx="18" cy="18" r="15.915" stroke-dasharray="0 100" />
+                </svg>
+                <div class="stat-info"><h4>Completed</h4><div class="stat-value" id="statCompleted">0</div></div>
+            </div>
+            <div class="stat-card">
+                <svg class="donut-chart" viewBox="0 0 36 36">
+                    <circle class="donut-bg" cx="18" cy="18" r="15.915" />
+                    <circle class="donut-fill-orange" id="donutPending" cx="18" cy="18" r="15.915" stroke-dasharray="0 100" />
+                </svg>
+                <div class="stat-info"><h4>Pending Review</h4><div class="stat-value" id="statPending">0</div></div>
+            </div>
+            <div class="stat-card">
+                <svg class="donut-chart" viewBox="0 0 36 36">
+                    <circle class="donut-bg" cx="18" cy="18" r="15.915" />
+                    <circle class="donut-fill-purple" id="donutRemaining" cx="18" cy="18" r="15.915" stroke-dasharray="100 0" />
+                </svg>
+                <div class="stat-info"><h4>Remaining</h4><div class="stat-value" id="statRemaining">0</div></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-row">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="designerSearch" placeholder="Search designer assignment…" oninput="handleSearch()" aria-label="Search designer" />
+                <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" aria-label="Clear search"><i data-lucide="x"></i></button>
+            </div>
+            <div class="custom-dropdown" id="monthDropdown" role="listbox" tabindex="0" aria-expanded="false"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCustomDropdown();}">
             <div class="dropdown-select-btn" onclick="toggleCustomDropdown()">
                 <div class="dd-left"><i data-lucide="calendar"></i><span id="selectedMonthText">Current Active</span></div>
                 <i data-lucide="chevron-down" id="dropdownChevron"></i>
@@ -656,10 +1003,24 @@
         </div>
     </div>
 
-    <!-- Search Overlay Box -->
+    <!-- Search result (now shows two slots) -->
     <div id="lookupResult" class="lookup-result">
-        <div><strong id="lookupName">Designer Name</strong><p id="lookupDate">Next Assignment: N/A</p></div>
-        <span id="lookupCountdown" class="lookup-countdown"></span>
+        <!-- First slot row -->
+        <div class="lookup-row">
+            <div>
+                <strong id="lookupName">Designer Name</strong>
+                <p id="lookupDate" class="lookup-line">Next Assignment: N/A</p>
+            </div>
+            <span id="lookupCountdown" class="lookup-countdown"></span>
+        </div>
+        <div class="lookup-divider"></div>
+        <!-- Second slot row -->
+        <div class="lookup-row">
+            <div>
+                <p id="lookupUpcomingDate" class="lookup-line">Upcoming: N/A</p>
+            </div>
+            <span id="lookupUpcomingCountdown" class="lookup-countdown"></span>
+        </div>
     </div>
 
     <!-- Schedule Grid -->
@@ -667,17 +1028,17 @@
     <div id="scheduleGrid" class="schedule-grid"></div>
 </div>
 
-<!-- Unified Login Modal -->
+<!-- Login Modal -->
 <div id="adminLoginModal" class="modal-overlay">
     <div class="modal-box accent-blue">
         <div class="modal-title"><i data-lucide="lock"></i> Admin Access</div>
         <div class="form-group">
             <label for="loginUsername">Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username..." onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()">
+            <input type="text" id="loginUsername" placeholder="Enter username…" onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()" />
         </div>
         <div class="form-group">
             <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyCredentials()">
+            <input type="password" id="loginPassword" placeholder="Enter password…" onkeydown="if(event.key==='Enter') verifyCredentials()" />
         </div>
         <div class="modal-actions">
             <button class="btn-modal btn-modal-ghost" onclick="closeLoginModal()">Cancel</button>
@@ -686,13 +1047,13 @@
     </div>
 </div>
 
-<!-- Assign Topic Modal -->
+<!-- Topic Modal -->
 <div id="topicModal" class="modal-overlay">
     <div class="modal-box accent-amber">
         <div class="modal-title"><i data-lucide="edit-3"></i> Assign design topic</div>
         <div id="topicModalSubtitle" class="modal-subtitle"></div>
         <div class="form-group">
-            <input type="text" id="topicInput" placeholder="Enter design topic or details..." onkeydown="if(event.key==='Enter') saveAssignedTopic()">
+            <input type="text" id="topicInput" placeholder="Enter design topic or details…" onkeydown="if(event.key==='Enter') saveAssignedTopic()" />
         </div>
         <div class="modal-actions">
             <button class="btn-modal btn-modal-ghost" onclick="closeTopicModal()">Cancel</button>
@@ -701,7 +1062,7 @@
     </div>
 </div>
 
-<!-- Confirm Action Modal -->
+<!-- Confirm Modal -->
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-box accent-coral" id="confirmModalBox">
         <div class="modal-title" id="confirmModalTitle"><i data-lucide="alert-triangle"></i> Please confirm</div>
@@ -713,13 +1074,13 @@
     </div>
 </div>
 
-<!-- Upload Loading Progress Modal -->
+<!-- Upload Progress -->
 <div id="uploadProgressModal" class="modal-overlay">
-    <div class="modal-box accent-blue" style="max-width: 300px; align-items: center; text-align: center;">
+    <div class="modal-box accent-blue" style="max-width:300px;align-items:center;text-align:center;">
         <div class="spinner"></div>
         <div>
-            <div style="font-weight: 700; color: var(--ink); font-size: 1rem; font-family: var(--font-display);">Uploading poster</div>
-            <div style="font-size: 0.82rem; color: var(--fog); margin-top: 4px;">Optimizing &amp; saving to database...</div>
+            <div style="font-weight:700;color:var(--ink);font-size:1rem;font-family:var(--font-display);">Uploading poster</div>
+            <div style="font-size:0.82rem;color:var(--fog);margin-top:4px;">Optimizing &amp; saving to database…</div>
         </div>
     </div>
 </div>
@@ -727,12 +1088,13 @@
 <div class="toast-stack" id="toastStack"></div>
 
 <script>
-    // Credentials & Roles Config
+    // ─── Credentials ──────────────────────────────────────────────────────────
     const USERS = {
-        "taki": { pass: "taki123", role: "owner" },
-        "jarin": { pass: "jarin123", role: "assigner" }
+        "jihad": { pass: "jihad123", role: "owner" },
+        "jarif": { pass: "jarif123", role: "assigner" }
     };
 
+    // ─── Firebase ────────────────────────────────────────────────────────────
     const firebaseConfig = {
         apiKey: "AIzaSyD2rVSwbwjW7Wp30askxe2Sldxjd7Po9mo",
         authDomain: "uyfsr-ae621.firebaseapp.com",
@@ -742,25 +1104,24 @@
         appId: "1:749011113927:web:e9b0860de944ada7482be2",
         measurementId: "G-75F66FVXFE"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ─── Constants ──────────────────────────────────────────────────────────
     const DEFAULT_DESIGNERS = [
         "Shahrin Noor Sarah",
         "Mushfiqur Rahman Pranto",
         "Ahanaf Fahad Sinan",
         "Sirajum Munira",
-        "taki Al Zaki",
+        "Taki Al Zaki",
         "Tashkir"
     ];
-
-    // How many days before a slot's date it should unlock (become visible/actionable).
-    // Previously slots unlocked in fixed groups of 3 tied to approvals, which is why
-    // Fri/Sat pairs (only 1 day apart) could unlock weeks apart. Now every slot opens
-    // independently, exactly this many days ahead of its own date.
     const UNLOCK_WINDOW_DAYS = 18;
 
+    // ★ Schedule starts from July 30, 2026 ★
+    const SCHEDULE_START = new Date(2026, 6, 30); // month is 0‑based (6 = July)
+
+    // ─── State ──────────────────────────────────────────────────────────────
     let DESIGNERS = [];
     let currentUser = null;
     let slotStates = {};
@@ -769,45 +1130,15 @@
     let designersLoaded = false;
     let slotsLoaded = false;
 
+    // ─── Helpers ─────────────────────────────────────────────────────────────
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, (c) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
-    }
-
-    // Favicon fallback: if favicon.jpg isn't found next to this file, swap in a generated one
-    // instead of leaving a blank browser tab icon.
-    (function checkFavicon() {
-        const test = new Image();
-        test.onerror = function () {
-            document.getElementById('faviconLink').href =
-                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7bff'/%3E%3Ctext x='16' y='21' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EUY%3C/text%3E%3C/svg%3E";
-        };
-        test.src = "favicon.jpg";
-    })();
-
-    db.ref("designers_list").on("value", (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-            DESIGNERS = Array.isArray(val) ? val : Object.values(val);
-        } else {
-            DESIGNERS = [...DEFAULT_DESIGNERS];
-            db.ref("designers_list").set(DESIGNERS);
-        }
-        designersLoaded = true;
-        renderAdminDesignerTags();
-        renderSchedule();
-    });
-
-    db.ref("schedule_slots").on("value", (snapshot) => {
-        slotStates = snapshot.val() || {};
-        slotsLoaded = true;
-        renderSchedule();
-    });
-
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('systemClock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        } [c]));
     }
 
     function getMonthLabel(monthOffset = 0) {
@@ -816,32 +1147,80 @@
         return target.toLocaleDateString('en-US', { month: 'long' });
     }
 
-    function updateMonthLabelDisplay() {
-        const currentMonthName = getMonthLabel(0);
-        const nextMonthName = getMonthLabel(1);
-        const monthTextMap = {
-            current: currentMonthName,
-            next: nextMonthName
+    // ─── Favicon fallback ────────────────────────────────────────────────────
+    (function checkFavicon() {
+        const test = new Image();
+        test.onerror = function() {
+            document.getElementById('faviconLink').href =
+                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7bff'/%3E%3Ctext x='16' y='21' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EUY%3C/text%3E%3C/svg%3E";
         };
+        test.src = "favicon.jpg";
+    })();
 
-        document.getElementById('selectedMonthText').innerText = monthTextMap[currentMonthValue] || currentMonthName;
+    // ─── Firebase listeners ─────────────────────────────────────────────────
+    db.ref("designers_list").on("value", (snapshot) => {
+        const val = snapshot.val();
+        DESIGNERS = val ? (Array.isArray(val) ? val : Object.values(val)) : [...DEFAULT_DESIGNERS];
+        if (!val) db.ref("designers_list").set(DESIGNERS);
+        designersLoaded = true;
+        renderAdminDesignerTags();
+        renderSchedule();
+        renderAdminScheduleSequence();
+    });
 
-        document.querySelectorAll('.dropdown-option').forEach((el) => {
-            const value = el.dataset.value;
-            el.innerText = monthTextMap[value] || currentMonthName;
-            el.classList.toggle('selected', value === currentMonthValue);
+    db.ref("schedule_slots").on("value", (snapshot) => {
+        slotStates = snapshot.val() || {};
+        slotsLoaded = true;
+        renderSchedule();
+        renderAdminScheduleSequence();
+    });
+
+    // ─── Clock ──────────────────────────────────────────────────────────────
+    function updateClock() {
+        document.getElementById('systemClock').innerText = new Date().toUTCString().split(' ')[4] + ' UTC';
+    }
+    setInterval(updateClock, 60000);
+    updateClock();
+
+    // ─── Month dropdown ─────────────────────────────────────────────────────
+    function updateMonthLabelDisplay() {
+        const currentName = getMonthLabel(0);
+        const nextName = getMonthLabel(1);
+        const map = { current: currentName, next: nextName };
+        document.getElementById('selectedMonthText').innerText = map[currentMonthValue] || currentName;
+        document.querySelectorAll('.dropdown-option').forEach(el => {
+            const v = el.dataset.value;
+            el.innerText = map[v] || currentName;
+            el.classList.toggle('selected', v === currentMonthValue);
         });
     }
-
-    setInterval(() => {
-        updateClock();
-        updateMonthLabelDisplay();
-        renderSchedule();
-    }, 60000);
-    updateClock();
+    setInterval(updateMonthLabelDisplay, 60000);
     updateMonthLabelDisplay();
 
-    // ---------- Toasts ----------
+    function toggleCustomDropdown() {
+        const opts = document.getElementById('dropdownOptions');
+        const wrap = document.getElementById('monthDropdown');
+        const open = opts.classList.toggle('open');
+        wrap.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function selectMonth(value) {
+        currentMonthValue = value;
+        updateMonthLabelDisplay();
+        document.getElementById('dropdownOptions').classList.remove('open');
+        document.getElementById('monthDropdown').setAttribute('aria-expanded', 'false');
+        renderSchedule();
+    }
+
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('monthDropdown');
+        if (!dd.contains(e.target)) {
+            document.getElementById('dropdownOptions').classList.remove('open');
+            dd.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // ─── Toasts ─────────────────────────────────────────────────────────────
     function showToast(message, type = 'info') {
         const stack = document.getElementById('toastStack');
         const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info';
@@ -856,8 +1235,9 @@
         }, 3200);
     }
 
-    // ---------- Confirm modal ----------
+    // ─── Confirm modal ──────────────────────────────────────────────────────
     let confirmResolver = null;
+
     function showConfirm(message, { title = 'Please confirm', okLabel = 'Confirm' } = {}) {
         document.getElementById('confirmModalMessage').innerText = message;
         document.getElementById('confirmModalTitle').innerHTML = `<i data-lucide="alert-triangle"></i> ${escapeHtml(title)}`;
@@ -866,36 +1246,13 @@
         lucide.createIcons();
         return new Promise((resolve) => { confirmResolver = resolve; });
     }
+
     function resolveConfirm(result) {
         document.getElementById('confirmModal').classList.remove('open');
         if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
     }
 
-    // ---------- Dropdown ----------
-    function toggleCustomDropdown() {
-        const options = document.getElementById('dropdownOptions');
-        const wrapper = document.getElementById('monthDropdown');
-        const isOpen = options.classList.toggle('open');
-        wrapper.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    }
-
-    function selectMonth(value) {
-        currentMonthValue = value;
-        updateMonthLabelDisplay();
-        document.getElementById('dropdownOptions').classList.remove('open');
-        document.getElementById('monthDropdown').setAttribute('aria-expanded', 'false');
-        renderSchedule();
-    }
-
-    window.addEventListener('click', function (e) {
-        const dropdown = document.getElementById('monthDropdown');
-        if (!dropdown.contains(e.target)) {
-            document.getElementById('dropdownOptions').classList.remove('open');
-            dropdown.setAttribute('aria-expanded', 'false');
-        }
-    });
-
-    // ---------- Auth ----------
+    // ─── Auth ───────────────────────────────────────────────────────────────
     async function openLoginModal() {
         if (currentUser) {
             const ok = await showConfirm(`Log out from ${currentUser.name}'s account?`, { title: 'Log out', okLabel: 'Log out' });
@@ -918,13 +1275,12 @@
     function verifyCredentials() {
         const uname = document.getElementById('loginUsername').value.trim();
         const upass = document.getElementById('loginPassword').value;
-
         if (USERS[uname] && USERS[uname].pass === upass) {
             currentUser = { name: uname, role: USERS[uname].role };
             closeLoginModal();
             updateUIRoles();
-            logAdminAction("LOGIN", `${uname} logged into the system as ${currentUser.role}.`);
-            showToast(`Welcome back, ${uname}.`, 'success');
+            logAdminAction("LOGIN", `${uname} logged in as ${currentUser.role}.`);
+            showToast(`Welcome, ${uname}.`, 'success');
         } else {
             showToast('Invalid username or password.', 'error');
             document.getElementById('loginPassword').value = '';
@@ -933,77 +1289,74 @@
 
     function updateUIRoles() {
         const btn = document.getElementById('controllerToggle');
-        const adminPanel = document.getElementById('adminPanel');
-
+        const panel = document.getElementById('adminPanel');
         if (!currentUser) {
             btn.className = "controller-btn";
             btn.innerHTML = `<i data-lucide="lock"></i> Admin Access`;
-            adminPanel.classList.remove('active');
+            panel.classList.remove('active');
         } else if (currentUser.role === 'owner') {
             btn.className = "controller-btn active-owner";
             btn.innerHTML = `<i data-lucide="shield-check"></i> ${escapeHtml(currentUser.name)} (Control)`;
-            adminPanel.classList.add('active');
+            panel.classList.add('active');
+            renderAdminScheduleSequence();
         } else if (currentUser.role === 'assigner') {
             btn.className = "controller-btn active-assigner";
             btn.innerHTML = `<i data-lucide="user-check"></i> ${escapeHtml(currentUser.name)} (Assigner)`;
-            adminPanel.classList.remove('active');
+            panel.classList.remove('active');
         }
         lucide.createIcons();
         renderSchedule();
     }
 
-    // ---------- Admin Logs ----------
+    // ─── Logs ───────────────────────────────────────────────────────────────
     function logAdminAction(actionType, details) {
-        const logData = {
+        db.ref("admin_logs").push({
             action: actionType,
             details: details,
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             dateString: new Date().toUTCString()
-        };
-        firebase.database().ref("admin_logs").push(logData);
+        });
     }
 
     db.ref("admin_logs").limitToLast(10).on("value", (snapshot) => {
-        const logsContainer = document.getElementById('adminLogsList');
-        if (!logsContainer) return;
-        logsContainer.innerHTML = '';
-
+        const container = document.getElementById('adminLogsList');
+        if (!container) return;
+        container.innerHTML = '';
         const val = snapshot.val();
         if (val) {
-            const logsArray = Object.values(val).reverse();
-            logsArray.forEach(log => {
-                logsContainer.innerHTML += `
-                    <div class="log-item">
-                        <span class="log-tag">[${escapeHtml(log.action)}]</span>
-                        <span class="log-detail">${escapeHtml(log.details)}</span>
-                        <span class="log-time">${log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}</span>
-                    </div>
-                `;
+            Object.values(val).reverse().forEach(log => {
+                container.innerHTML += `
+                        <div class="log-item">
+                            <span class="log-tag">[${escapeHtml(log.action)}]</span>
+                            <span class="log-detail">${escapeHtml(log.details)}</span>
+                            <span class="log-time">${log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}</span>
+                        </div>
+                    `;
             });
         } else {
-            logsContainer.innerHTML = `<div class="log-item"><span class="log-detail">No activity logs yet — actions will appear here.</span></div>`;
+            container.innerHTML =
+                `<div class="log-item"><span class="log-detail">No activity logs yet — actions will appear here.</span></div>`;
         }
     });
 
+    // ─── Designer management ────────────────────────────────────────────────
     function renderAdminDesignerTags() {
-        const tagContainer = document.getElementById('designerTagList');
-        if (!tagContainer) return;
-
-        if (DESIGNERS.length === 0) {
-            tagContainer.innerHTML = `<div class="empty-hint">No designers yet — add one above to start building the rotation.</div>`;
+        const container = document.getElementById('designerTagList');
+        if (!container) return;
+        if (!DESIGNERS.length) {
+            container.innerHTML = `<div class="empty-hint">No designers yet — add one above to start building the rotation.</div>`;
             return;
         }
-
-        tagContainer.innerHTML = '';
-        DESIGNERS.forEach((name, index) => {
-            tagContainer.innerHTML += `
-                <div class="designer-tag">
-                    <span>${escapeHtml(name)}</span>
-                    <button class="btn-delete-tag" onclick="deleteDesigner(${index})" title="Remove designer" aria-label="Remove ${escapeHtml(name)}">
-                        <i data-lucide="x"></i>
-                    </button>
-                </div>
-            `;
+        container.innerHTML = '';
+        DESIGNERS.forEach((name, i) => {
+            container.innerHTML += `
+                    <div class="designer-tag">
+                        <span>${escapeHtml(name)}</span>
+                        <button class="btn-delete-tag" onclick="deleteDesigner(${i})" title="Remove designer" aria-label="Remove ${escapeHtml(name)}">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                `;
         });
         lucide.createIcons();
     }
@@ -1015,16 +1368,16 @@
         if (name) {
             DESIGNERS.push(name);
             db.ref("designers_list").set(DESIGNERS);
-            logAdminAction("ADD_DESIGNER", `Added new designer: ${name}`);
+            logAdminAction("ADD_DESIGNER", `Added designer: ${name}`);
             input.value = '';
-            showToast(`${name} added to the rotation.`, 'success');
+            showToast(`${name} added to rotation.`, 'success');
         }
     }
 
     async function deleteDesigner(index) {
         if (!currentUser || currentUser.role !== 'owner') return;
         const name = DESIGNERS[index];
-        const ok = await showConfirm(`Remove ${name} from the rotation? This can't be undone.`, { title: 'Remove designer', okLabel: 'Remove' });
+        const ok = await showConfirm(`Remove ${name} from the rotation? This cannot be undone.`, { title: 'Remove designer', okLabel: 'Remove' });
         if (ok) {
             DESIGNERS.splice(index, 1);
             db.ref("designers_list").set(DESIGNERS);
@@ -1033,7 +1386,237 @@
         }
     }
 
-    // ---------- Topic Assignment (owner/assigner can pre-assign topics on locked, future slots too) ----------
+    // ─── Deterministic Round-Robin Schedule Generator ──────────────────────
+    function generateMonthSchedule(year, monthIndex) {
+        if (!DESIGNERS.length) return [];
+
+        const slots = [];
+        const start = new Date(year, monthIndex, 1);
+        const end = new Date(year, monthIndex + 1, 0);
+
+        const date = new Date(start);
+        const slotDates = [];
+        while (date <= end) {
+            const d = date.getDay();
+            if (d === 5 || d === 6) slotDates.push(new Date(date));
+            date.setDate(date.getDate() + 1);
+        }
+
+        let seq = (year * 12) + monthIndex;
+        let lastAssigned = null;
+        let offset = 0;
+
+        for (const dt of slotDates) {
+            const slotId = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+            const saved = slotStates[slotId] || {};
+            let assigned;
+
+            if (saved.assignedDesigner) {
+                assigned = saved.assignedDesigner;
+            } else {
+                let idx = (seq + offset) % DESIGNERS.length;
+                assigned = DESIGNERS[idx];
+                if (assigned === lastAssigned && DESIGNERS.length > 1) {
+                    offset++;
+                    idx = (seq + offset) % DESIGNERS.length;
+                    assigned = DESIGNERS[idx];
+                }
+                offset++;
+                db.ref("schedule_slots/" + slotId).update({ assignedDesigner: assigned });
+            }
+            lastAssigned = assigned;
+
+            slots.push({
+                id: slotId,
+                date: new Date(dt),
+                dayName: dt.getDay() === 5 ? "Friday" : "Saturday",
+                assignedDesigner: assigned
+            });
+        }
+        return slots;
+    }
+
+    // ─── Filter slots that are on or after SCHEDULE_START ──────────────────
+    function filterSchedule(schedule) {
+        const start = new Date(SCHEDULE_START);
+        start.setHours(0, 0, 0, 0);
+        return schedule.filter(slot => {
+            const d = new Date(slot.date);
+            d.setHours(0, 0, 0, 0);
+            return d >= start;
+        });
+    }
+
+    // ─── Read‑only generator (no DB writes) ─────────────────────────────────
+    function generateMonthScheduleReadOnly(year, monthIndex) {
+        if (!DESIGNERS.length) return [];
+        const slots = [];
+        const start = new Date(year, monthIndex, 1);
+        const end = new Date(year, monthIndex + 1, 0);
+        const slotDates = [];
+        const date = new Date(start);
+        while (date <= end) {
+            const d = date.getDay();
+            if (d === 5 || d === 6) slotDates.push(new Date(date));
+            date.setDate(date.getDate() + 1);
+        }
+        let seq = (year * 12) + monthIndex;
+        let lastAssigned = null;
+        let offset = 0;
+        for (const dt of slotDates) {
+            const slotId = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+            const saved = slotStates[slotId] || {};
+            let assigned;
+            if (saved.assignedDesigner) {
+                assigned = saved.assignedDesigner;
+            } else {
+                let idx = (seq + offset) % DESIGNERS.length;
+                assigned = DESIGNERS[idx];
+                if (assigned === lastAssigned && DESIGNERS.length > 1) {
+                    offset++;
+                    idx = (seq + offset) % DESIGNERS.length;
+                    assigned = DESIGNERS[idx];
+                }
+                offset++;
+            }
+            lastAssigned = assigned;
+            slots.push({
+                id: slotId,
+                date: new Date(dt),
+                dayName: dt.getDay() === 5 ? "Friday" : "Saturday",
+                assignedDesigner: assigned
+            });
+        }
+        return slots;
+    }
+
+    // ─── Unlock check ──────────────────────────────────────────────────────
+    function isSlotUnlocked(slotDate) {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const d = new Date(slotDate);
+        d.setHours(0, 0, 0, 0);
+        const days = Math.round((d - now) / (24 * 60 * 60 * 1000));
+        return days <= UNLOCK_WINDOW_DAYS;
+    }
+
+    // ─── Poster helpers ─────────────────────────────────────────────────────
+    function getPosterUrls(state = {}) {
+        const list = Array.isArray(state.posterUrls) ? state.posterUrls.filter(Boolean) : [];
+        if (list.length) return list;
+        if (state.posterUrl) return [state.posterUrl];
+        return [];
+    }
+
+    function buildPosterDownloadButtons(urls, designerName) {
+        if (!urls.length) return '';
+        return urls.map((url, i) => {
+            const safe = String(url).replace(/'/g, "\\'");
+            const label = urls.length > 1 ? `Poster ${i + 1}` : 'Download';
+            return `<button class="btn-action btn-download" onclick="downloadImage('${safe}','${designerName}',${i+1})"><i data-lucide="download"></i> ${label}</button>`;
+        }).join('');
+    }
+
+    function downloadImage(url, designerName, posterNumber = 1) {
+        fetch(url).then(r => r.blob()).then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `Poster_${designerName.replace(/\s+/g,'_')}_${posterNumber}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+            logAdminAction("DOWNLOAD_POSTER", `Poster ${posterNumber} downloaded for ${designerName}`);
+        }).catch(() => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Poster_${designerName.replace(/\s+/g,'_')}_${posterNumber}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+
+    function convertImageToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/jpeg', 0.90));
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function triggerFileUpload(slotId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/png, image/jpeg, image/webp';
+        input.onchange = async (e) => {
+            const files = Array.from(e.target.files || []).filter(f => f && f.type.startsWith('image/'));
+            if (!files.length) return;
+            document.getElementById('uploadProgressModal').classList.add('open');
+            try {
+                const b64 = await Promise.all(files.map(convertImageToBase64));
+                const existing = getPosterUrls(slotStates[slotId] || {});
+                const merged = [...existing, ...b64];
+                await db.ref("schedule_slots/" + slotId).update({
+                    submitted: true,
+                    approved: false,
+                    posterUrl: merged[merged.length - 1] || null,
+                    posterUrls: merged
+                });
+                logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ${slotId}`);
+                showToast('Poster uploaded — pending review.', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Could not upload poster. Try again.', 'error');
+            } finally {
+                document.getElementById('uploadProgressModal').classList.remove('open');
+            }
+        };
+        input.click();
+    }
+
+    function markApproved(slotId) {
+        if (!currentUser || currentUser.role !== 'owner') return;
+        db.ref("schedule_slots/" + slotId).update({ approved: true, submitted: true }).then(() => {
+            logAdminAction("APPROVE_SLOT", `Slot ${slotId} approved.`);
+            showToast('Slot approved.', 'success');
+        });
+    }
+
+    async function resetSlot(slotId) {
+        if (!currentUser || currentUser.role !== 'owner') return;
+        const ok = await showConfirm("Remove this slot's poster image(s) only? The approval state stays intact.", { title: 'Reset image', okLabel: 'Delete image' });
+        if (ok) {
+            const state = slotStates[slotId] || {};
+            const keep = Boolean(state.approved);
+            db.ref("schedule_slots/" + slotId).update({
+                submitted: keep,
+                approved: keep,
+                posterUrl: null,
+                posterUrls: []
+            }).then(() => {
+                logAdminAction("RESET_IMAGE", `Poster image(s) cleared for slot ${slotId}.`);
+                showToast('Poster image cleared.', 'info');
+            }).catch(() => showToast('Could not clear poster image.', 'error'));
+        }
+    }
+
+    // ─── Topic assignment ──────────────────────────────────────────────────
     function openTopicModal(slotId, designerName, currentTopic) {
         activeTopicSlotId = slotId;
         document.getElementById('topicModalSubtitle').innerText = `Assigning topic for ${designerName}`;
@@ -1051,213 +1634,198 @@
         const topic = document.getElementById('topicInput').value.trim();
         if (activeTopicSlotId) {
             db.ref("schedule_slots/" + activeTopicSlotId).update({ topic: topic }).then(() => {
-                logAdminAction("ASSIGN_TOPIC", `Topic updated for slot ID: ${activeTopicSlotId}`);
+                logAdminAction("ASSIGN_TOPIC", `Topic updated for slot ${activeTopicSlotId}`);
                 closeTopicModal();
                 showToast('Topic saved.', 'success');
             });
         }
     }
 
-    function generateMonthSchedule(year, monthIndex) {
-        if (DESIGNERS.length === 0) return [];
-        const slots = [];
-
-        const date = new Date(year, 6, 31);
-        let designerIdx = 0;
-
-        while (date.getFullYear() === year && date.getMonth() <= monthIndex + 1) {
-            if (date.getMonth() > monthIndex && monthIndex === new Date(year, monthIndex, 1).getMonth() && date.getDate() > 1 && monthIndex !== 6) {
-                break;
-            }
-
-            const day = date.getDay();
-            if (day === 5 || day === 6) {
-                if (date.getMonth() === monthIndex || (monthIndex === 6 && date.getMonth() === 6 && date.getDate() === 31)) {
-                    const assignedName = DESIGNERS[designerIdx % DESIGNERS.length];
-                    slots.push({
-                        id: `${year}-${date.getMonth()}-${date.getDate()}`,
-                        date: new Date(date),
-                        dayName: day === 5 ? "Friday" : "Saturday",
-                        assignedDesigner: assignedName
-                    });
-                    designerIdx++;
-                }
-            }
-            date.setDate(date.getDate() + 1);
-
-            if (date.getMonth() > monthIndex && date.getDay() === 0 && date.getDate() > 7) break;
-        }
-        return slots;
-    }
-
-    // A slot unlocks exactly UNLOCK_WINDOW_DAYS before its own date (and stays unlocked
-    // after that, including once it's in the past). Each slot is judged purely against
-    // its own date now, so closely-spaced slots open on a matching, predictable cadence.
-    function isSlotUnlocked(slotDate) {
-        const now = new Date(); now.setHours(0, 0, 0, 0);
-        const d = new Date(slotDate); d.setHours(0, 0, 0, 0);
-        const daysUntil = Math.round((d - now) / (24 * 60 * 60 * 1000));
-        return daysUntil <= UNLOCK_WINDOW_DAYS;
-    }
-
-    function getPosterUrls(state = {}) {
-        const explicitList = Array.isArray(state.posterUrls) ? state.posterUrls.filter(Boolean) : [];
-        if (explicitList.length > 0) return explicitList;
-        if (state.posterUrl) return [state.posterUrl];
-        return [];
-    }
-
-    function buildPosterDownloadButtons(posterUrls, designerName) {
-        if (!posterUrls.length) return '';
-        return posterUrls.map((url, index) => {
-            const safeUrl = String(url).replace(/'/g, "\\'");
-            const label = posterUrls.length > 1 ? `Poster ${index + 1}` : 'Download';
-            return `<button class="btn-action btn-download" onclick="downloadImage('${safeUrl}', '${designerName}', ${index + 1})"><i data-lucide="download"></i> ${label}</button>`;
-        }).join('');
-    }
-
-    function convertImageToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    resolve(canvas.toDataURL('image/jpeg', 0.90));
-                };
-                img.onerror = reject;
-                img.src = event.target.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async function triggerFileUpload(slotId) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'image/png, image/jpeg, image/webp';
-
-        input.onchange = async (e) => {
-            const files = Array.from(e.target.files || []).filter(file => file && file.type.startsWith('image/'));
-            if (!files.length) return;
-
-            document.getElementById('uploadProgressModal').classList.add('open');
-
-            try {
-                const uploadedPosterUrls = await Promise.all(files.map(convertImageToBase64));
-                const existingPosterUrls = getPosterUrls(slotStates[slotId] || {});
-                const nextPosterUrls = [...existingPosterUrls, ...uploadedPosterUrls];
-
-                await db.ref("schedule_slots/" + slotId).update({
-                    submitted: true,
-                    approved: false,
-                    posterUrl: nextPosterUrls[nextPosterUrls.length - 1] || null,
-                    posterUrls: nextPosterUrls
-                });
-                logAdminAction("UPLOAD_POSTER", `Poster uploaded for slot ID: ${slotId}`);
-                showToast('Poster uploaded — pending review.', 'success');
-            } catch (err) {
-                console.error("Firebase Save Error:", err);
-                showToast('Could not upload poster. Please try again.', 'error');
-            } finally {
-                document.getElementById('uploadProgressModal').classList.remove('open');
-            }
-        };
-
-        input.click();
-    }
-
-    function markApproved(slotId) {
-        if (!currentUser || currentUser.role !== 'owner') return;
-        db.ref("schedule_slots/" + slotId).update({ approved: true, submitted: true }).then(() => {
-            logAdminAction("APPROVE_SLOT", `Slot ID: ${slotId} was approved.`);
-            showToast('Slot approved.', 'success');
-        });
-    }
-
-    async function resetSlot(slotId) {
-        if (!currentUser || currentUser.role !== 'owner') return;
-        const ok = await showConfirm("Remove this slot's poster image(s) only? The slot approval state will be kept intact.", { title: 'Reset image', okLabel: 'Delete image' });
-        if (ok) {
-            const slotState = slotStates[slotId] || {};
-            const keepApproved = Boolean(slotState.approved);
-            db.ref("schedule_slots/" + slotId).update({
-                submitted: keepApproved,
-                approved: keepApproved,
-                posterUrl: null,
-                posterUrls: []
-            }).then(() => {
-                logAdminAction("RESET_IMAGE", `Poster image(s) cleared for slot ID: ${slotId}.`);
-                showToast('Poster image cleared.', 'info');
-            }).catch((error) => {
-                console.error("Error clearing poster image: ", error);
-                showToast('Could not clear poster image.', 'error');
+    // ─── Drag‑and‑drop sequence control (next 6 months) ────────────────────
+    function generateUpcomingSlots() {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const all = [];
+        for (let offset = 0; offset <= 6; offset++) {
+            const year = today.getFullYear();
+            const month = today.getMonth() + offset;
+            const schedule = generateMonthSchedule(year, month);
+            const filtered = filterSchedule(schedule);
+            const future = filtered.filter(s => {
+                const d = new Date(s.date);
+                d.setHours(0,0,0,0);
+                return d >= today;
             });
+            all.push(...future);
+        }
+        all.sort((a,b) => a.date - b.date);
+        return all;
+    }
+
+    let draggedAdminIdx = null;
+
+    function renderAdminScheduleSequence() {
+        const container = document.getElementById('adminScheduleSequenceList');
+        if (!container) return;
+        if (!currentUser || currentUser.role !== 'owner') {
+            container.innerHTML = `<div class="empty-hint">Log in as owner to view and edit manual sequence.</div>`;
+            return;
+        }
+        const upcoming = generateUpcomingSlots();
+        if (!upcoming.length) {
+            container.innerHTML = `<div class="empty-hint">No upcoming slots found.</div>`;
+            return;
+        }
+        let html = '';
+        upcoming.forEach((slot, i) => {
+            const ds = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            html += `
+                    <div class="designer-tag" draggable="true"
+                         ondragstart="onAdminDragStart(event,${i})"
+                         ondragover="event.preventDefault()"
+                         ondrop="onAdminDrop(event,${i})"
+                         style="cursor:grab;justify-content:space-between;width:100%;">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <i data-lucide="grip-vertical" style="width:14px;height:14px;color:var(--fog);"></i>
+                            <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--signal-hover);">${ds} (${slot.dayName})</span>
+                        </div>
+                        <strong style="color:var(--ink);">${escapeHtml(slot.assignedDesigner)}</strong>
+                    </div>
+                `;
+        });
+        container.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    function onAdminDragStart(event, index) { draggedAdminIdx = index; }
+
+    async function onAdminDrop(event, targetIdx) {
+        event.preventDefault();
+        if (draggedAdminIdx === null || draggedAdminIdx === targetIdx) return;
+        const upcoming = generateUpcomingSlots();
+        const src = upcoming[draggedAdminIdx];
+        const tgt = upcoming[targetIdx];
+        if (!src || !tgt) return;
+        const temp = src.assignedDesigner;
+        await db.ref("schedule_slots/" + src.id).update({ assignedDesigner: tgt.assignedDesigner });
+        await db.ref("schedule_slots/" + tgt.id).update({ assignedDesigner: temp });
+        logAdminAction("MANUAL_SEQUENCE_SWAP", `Reordered schedule sequence.`);
+        showToast('Schedule sequence updated!', 'success');
+        draggedAdminIdx = null;
+        renderSchedule();
+        renderAdminScheduleSequence();
+    }
+
+    // ─── ★ SEARCH – shows two upcoming slots (next & upcoming) ──────────────
+    function handleSearch() {
+        const query = document.getElementById('designerSearch').value.trim().toLowerCase();
+        const result = document.getElementById('lookupResult');
+        document.getElementById('searchClearBtn').classList.toggle('visible', query.length > 0);
+
+        if (!query) {
+            result.classList.remove('active');
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const MAX_MONTHS_AHEAD = 24;
+        let allFutureSlots = [];
+
+        for (let offset = 0; offset <= MAX_MONTHS_AHEAD; offset++) {
+            const year = today.getFullYear();
+            const month = today.getMonth() + offset;
+            const schedule = generateMonthScheduleReadOnly(year, month);
+            const filtered = filterSchedule(schedule);
+            const future = filtered.filter(s => {
+                const d = new Date(s.date);
+                d.setHours(0, 0, 0, 0);
+                return d > today;
+            });
+            allFutureSlots = allFutureSlots.concat(future);
+            const earlyMatches = allFutureSlots.filter(s =>
+                s.assignedDesigner.toLowerCase().includes(query)
+            );
+            if (earlyMatches.length >= 2) break; // we want at least two matches
+        }
+
+        const matches = allFutureSlots.filter(s =>
+            s.assignedDesigner.toLowerCase().includes(query)
+        );
+        // sort by date ascending
+        matches.sort((a, b) => a.date - b.date);
+
+        const next = matches[0] || null;
+        const upcoming = matches[1] || null;
+
+        if (next) {
+            const state = slotStates[next.id] || {};
+            const ds = next.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            let label = `Next slot: ${ds}`;
+            if (state.approved) label += ' <span class="lookup-status approved">Approved</span>';
+            else if (state.submitted) label += ' <span class="lookup-status submitted">Pending Review</span>';
+
+            document.getElementById('lookupName').innerText = next.assignedDesigner;
+            document.getElementById('lookupDate').innerHTML = label;
+            const days = Math.ceil((next.date - new Date()) / (24 * 60 * 60 * 1000));
+            document.getElementById('lookupCountdown').innerText = days === 0 ? 'Today' : days > 0 ? `In ${days}d` : '';
+
+            // Second row
+            if (upcoming) {
+                const upDs = upcoming.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                document.getElementById('lookupUpcomingDate').innerHTML = `Upcoming: ${upDs}`;
+                const upDays = Math.ceil((upcoming.date - new Date()) / (24 * 60 * 60 * 1000));
+                document.getElementById('lookupUpcomingCountdown').innerText = upDays === 0 ? 'Today' : upDays > 0 ? `In ${upDays}d` : '';
+            } else {
+                document.getElementById('lookupUpcomingDate').innerHTML = 'Upcoming: none';
+                document.getElementById('lookupUpcomingCountdown').innerText = '';
+            }
+            result.classList.add('active');
+        } else {
+            document.getElementById('lookupName').innerText = "No upcoming slot";
+            document.getElementById('lookupDate').innerText = "No future assignments found.";
+            document.getElementById('lookupCountdown').innerText = "";
+            document.getElementById('lookupUpcomingDate').innerText = "";
+            document.getElementById('lookupUpcomingCountdown').innerText = "";
+            result.classList.add('active');
         }
     }
 
-    async function downloadImage(url, designerName, posterNumber = 1) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = `Poster_${designerName.replace(/\s+/g, '_')}_${posterNumber}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(blobUrl);
-            logAdminAction("DOWNLOAD_POSTER", `Poster ${posterNumber} downloaded for ${designerName}`);
-        } catch (err) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Poster_${designerName.replace(/\s+/g, '_')}_${posterNumber}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    function clearSearch() {
+        const input = document.getElementById('designerSearch');
+        input.value = '';
+        handleSearch();
+        input.focus();
     }
 
+    // ─── Render schedule ────────────────────────────────────────────────────
     function renderSkeletons() {
         const grid = document.getElementById('scheduleGrid');
         let html = '';
         for (let i = 0; i < 6; i++) {
             html += `
-                <div class="skeleton-card">
-                    <div class="skeleton-bar" style="width:60%; height:14px;"></div>
-                    <div class="skeleton-bar" style="width:80%; height:20px;"></div>
-                    <div class="skeleton-bar" style="width:100%; height:30px;"></div>
-                    <div class="skeleton-bar" style="width:40%; height:22px; margin-top:auto;"></div>
-                </div>
-            `;
+                    <div class="skeleton-card">
+                        <div class="skeleton-bar" style="width:60%;height:14px;"></div>
+                        <div class="skeleton-bar" style="width:80%;height:20px;"></div>
+                        <div class="skeleton-bar" style="width:100%;height:30px;"></div>
+                        <div class="skeleton-bar" style="width:40%;height:22px;margin-top:auto;"></div>
+                    </div>
+                `;
         }
         grid.innerHTML = html;
     }
 
     function renderSchedule() {
         const grid = document.getElementById('scheduleGrid');
-
-        if (!designersLoaded || !slotsLoaded) {
-            renderSkeletons();
-            return;
-        }
-
-        if (DESIGNERS.length === 0) {
+        if (!designersLoaded || !slotsLoaded) { renderSkeletons(); return; }
+        if (!DESIGNERS.length) {
             grid.innerHTML = `
-                <div class="empty-state">
-                    <i data-lucide="users"></i>
-                    <strong>No designers in the rotation yet</strong>
-                    <span>An admin needs to add designers before slots can be scheduled.</span>
-                </div>
-            `;
+                    <div class="empty-state">
+                        <i data-lucide="users"></i>
+                        <strong>No designers in rotation yet</strong>
+                        <span>An admin needs to add designers before slots can be scheduled.</span>
+                    </div>
+                `;
             document.getElementById('statTotal').innerText = 0;
             document.getElementById('statCompleted').innerText = 0;
             document.getElementById('statPending').innerText = 0;
@@ -1268,179 +1836,120 @@
 
         const now = new Date();
         now.setHours(0, 0, 0, 0);
+        const offset = currentMonthValue === 'next' ? 1 : 0;
+        const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+        let schedule = generateMonthSchedule(target.getFullYear(), target.getMonth());
+        schedule = filterSchedule(schedule);
 
-        const monthOffset = currentMonthValue === 'next' ? 1 : 0;
-        const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+        let completed = 0, pending = 0;
+        let html = '';
 
-        const schedule = generateMonthSchedule(targetDate.getFullYear(), targetDate.getMonth());
-
-        let completedCount = 0;
-        let pendingCount = 0;
-        let cardsHtml = '';
-
-        schedule.forEach((slot) => {
+        for (const slot of schedule) {
             const state = slotStates[slot.id] || { submitted: false, approved: false, posterUrl: null, posterUrls: [], topic: "" };
-            const posterUrls = getPosterUrls(state);
-
-            if (state.approved) completedCount++;
-            else if (state.submitted) pendingCount++;
+            const urls = getPosterUrls(state);
+            if (state.approved) completed++;
+            else if (state.submitted) pending++;
 
             const slotDate = new Date(slot.date);
             slotDate.setHours(0, 0, 0, 0);
-
             const isPast = slotDate < now;
             const isAutoCancelled = isPast && !state.submitted && !state.approved;
-            const isUnlocked = isSlotUnlocked(slot.date);
-            const canReveal = isUnlocked || state.submitted || state.approved;
+            const unlocked = isSlotUnlocked(slot.date);
+            const canReveal = unlocked || state.submitted || state.approved;
             const isOwner = currentUser && currentUser.role === 'owner';
             const isAdminOrAssigner = currentUser && (currentUser.role === 'assigner' || currentUser.role === 'owner');
 
-            const dateString = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const dateStr = slot.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const safeTopic = escapeHtml(state.topic || '');
             const safeDesigner = escapeHtml(slot.assignedDesigner);
             const jsDesigner = safeDesigner.replace(/'/g, "\\'");
             const jsTopic = safeTopic.replace(/'/g, "\\'");
 
-            let statusMarkup = '';
-            let actionMarkup = '';
-            let cardExtraClass = '';
-            let topicMarkup = '';
-            let isLiveNow = false;
+            let statusMarkup = '', actionMarkup = '', cardExtra = '', topicMarkup = '', isLive = false;
 
-            // Topic is visible to everyone regardless of lock status.
             if (state.topic) {
                 topicMarkup = `<div class="topic-display"><i data-lucide="tag"></i><span>Topic: ${safeTopic}</span></div>`;
             } else {
                 topicMarkup = `<div class="topic-display unassigned"><i data-lucide="tag"></i><span>Topic not assigned yet</span></div>`;
             }
-
-            // Assigner/owner can assign or edit the topic on ANY slot, including ones still locked far in the future.
             if (isAdminOrAssigner) {
-                topicMarkup = `<div class="topic-display editable ${state.topic ? '' : 'unassigned'}" onclick="openTopicModal('${slot.id}', '${jsDesigner}', '${jsTopic}')">
-                    <i data-lucide="edit-3"></i><span>${state.topic ? 'Topic: ' + safeTopic : '+ Assign topic'}</span>
-                </div>`;
+                topicMarkup = `<div class="topic-display editable ${state.topic ? '' : 'unassigned'}" onclick="openTopicModal('${slot.id}','${jsDesigner}','${jsTopic}')">
+                        <i data-lucide="edit-3"></i><span>${state.topic ? 'Topic: ' + safeTopic : '+ Assign topic'}</span>
+                    </div>`;
             }
 
             if (isAutoCancelled) {
                 statusMarkup = `<span class="status-badge status-cancelled">Cancelled / Missed</span>`;
-                cardExtraClass = 'faded-slot';
+                cardExtra = 'faded-slot';
                 if (isOwner) {
                     actionMarkup = `<div class="action-group"><button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button></div>`;
                 }
             } else if (canReveal) {
                 if (state.approved) {
                     statusMarkup = `<span class="status-badge status-approved">Approved</span>`;
-                    cardExtraClass = 'faded-slot';
-
+                    cardExtra = 'faded-slot';
                     if (isOwner) {
-                        let downloadBtn = buildPosterDownloadButtons(posterUrls, jsDesigner);
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
-                        actionMarkup = `<div class="action-group">${downloadBtn}${resetBtn}</div>`;
+                        const dl = buildPosterDownloadButtons(urls, jsDesigner);
+                        const reset = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
+                        actionMarkup = `<div class="action-group">${dl}${reset}</div>`;
                     }
-                    // Downloads are owner-only; assigner and regular visitors see the status only.
                 } else if (state.submitted) {
                     statusMarkup = `<span class="status-badge status-submitted">Pending Review</span>`;
-
                     if (isOwner) {
-                        let downloadBtn = buildPosterDownloadButtons(posterUrls, jsDesigner);
-                        let approveBtn = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
-                        let resetBtn = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
-                        actionMarkup = `<div class="action-group">${downloadBtn}${approveBtn}${resetBtn}</div>`;
+                        const dl = buildPosterDownloadButtons(urls, jsDesigner);
+                        const approve = `<button class="btn-action btn-approve" onclick="markApproved('${slot.id}')"><i data-lucide="check"></i> Approve</button>`;
+                        const reset = `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
+                        actionMarkup = `<div class="action-group">${dl}${approve}${reset}</div>`;
                     }
                 } else {
-                    isLiveNow = true;
+                    isLive = true;
                     statusMarkup = `<span class="status-badge status-active"><span class="pulse-dot"></span>Active Slot</span>`;
-                    let actionButtonsHTML = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
-                    if (isOwner) {
-                        actionButtonsHTML += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
-                    }
-                    actionMarkup = `<div class="action-group">${actionButtonsHTML}</div>`;
+                    let btns = `<button class="btn-action" onclick="triggerFileUpload('${slot.id}')"><i data-lucide="upload"></i> Upload</button>`;
+                    if (isOwner) btns += `<button class="btn-action btn-danger" onclick="resetSlot('${slot.id}')"><i data-lucide="trash-2"></i> Reset image</button>`;
+                    actionMarkup = `<div class="action-group">${btns}</div>`;
                 }
             } else {
                 statusMarkup = `<span class="status-badge status-locked">Locked</span>`;
-                actionMarkup = `<span class="locked-note"><i data-lucide="info"></i> Opens ${UNLOCK_WINDOW_DAYS}d before the slot date</span>`;
+                actionMarkup = `<span class="locked-note"><i data-lucide="info"></i> Opens ${UNLOCK_WINDOW_DAYS}d before slot</span>`;
             }
 
-            const nameReveal = canReveal || isAutoCancelled;
+            const showName = canReveal || isAutoCancelled;
+            html += `
+                    <div class="slot-card ${canReveal ? 'active-reveal' : ''} ${isLive ? 'is-live' : ''} ${cardExtra} ${!showName ? 'locked-slot' : ''}">
+                        <div class="card-top">
+                            <span class="slot-date"><i data-lucide="calendar"></i>${dateStr}</span>
+                            <span>${slot.dayName}</span>
+                        </div>
+                        <div class="ticket-divider"></div>
+                        <div class="designer-name ${!showName ? 'locked-name' : ''}">
+                            ${showName ? '' : '<i data-lucide="lock" class="lock-icon"></i>'}
+                            ${showName ? safeDesigner : 'Assignment locked'}
+                        </div>
+                        ${topicMarkup}
+                        <div class="card-bottom">
+                            ${statusMarkup}
+                            ${actionMarkup}
+                        </div>
+                    </div>
+                `;
+        }
 
-            cardsHtml += `
-                <div class="slot-card ${canReveal ? 'active-reveal' : ''} ${isLiveNow ? 'is-live' : ''} ${cardExtraClass} ${!nameReveal ? 'locked-slot' : ''}">
-                    <div class="card-top">
-                        <span class="slot-date"><i data-lucide="calendar"></i>${dateString}</span>
-                        <span>${slot.dayName}</span>
-                    </div>
-                    <div class="ticket-divider"></div>
-                    <div class="designer-name ${!nameReveal ? 'locked-name' : ''}">
-                        ${nameReveal ? '' : '<i data-lucide="lock" class="lock-icon"></i>'}
-                        ${nameReveal ? safeDesigner : 'Assignment locked'}
-                    </div>
-                    ${topicMarkup}
-                    <div class="card-bottom">
-                        ${statusMarkup}
-                        ${actionMarkup}
-                    </div>
-                </div>
-            `;
-        });
-
-        grid.innerHTML = cardsHtml;
+        grid.innerHTML = html;
 
         const total = schedule.length;
         document.getElementById('statTotal').innerText = total;
-        document.getElementById('statCompleted').innerText = completedCount;
-        document.getElementById('statPending').innerText = pendingCount;
-        document.getElementById('statRemaining').innerText = total - completedCount;
-
-        const safeTotal = total === 0 ? 1 : total;
-        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completedCount / safeTotal) * 100} 100`);
-        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pendingCount / safeTotal) * 100} 100`);
-        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total - completedCount) / safeTotal) * 100} 100`);
+        document.getElementById('statCompleted').innerText = completed;
+        document.getElementById('statPending').innerText = pending;
+        document.getElementById('statRemaining').innerText = total - completed;
+        const safe = total || 1;
+        document.getElementById('donutCompleted').setAttribute('stroke-dasharray', `${(completed/safe)*100} 100`);
+        document.getElementById('donutPending').setAttribute('stroke-dasharray', `${(pending/safe)*100} 100`);
+        document.getElementById('donutRemaining').setAttribute('stroke-dasharray', `${((total-completed)/safe)*100} 100`);
 
         lucide.createIcons();
     }
 
-    function clearSearch() {
-        const input = document.getElementById('designerSearch');
-        input.value = '';
-        handleSearch();
-        input.focus();
-    }
-
-    function handleSearch() {
-        const rawQuery = document.getElementById('designerSearch').value.trim();
-        const query = rawQuery.toLowerCase();
-        const resultBox = document.getElementById('lookupResult');
-        document.getElementById('searchClearBtn').classList.toggle('visible', rawQuery.length > 0);
-
-        if (!query) {
-            resultBox.classList.remove('active');
-            return;
-        }
-
-        const now = new Date();
-        const currentSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth());
-        const nextSchedule = generateMonthSchedule(now.getFullYear(), now.getMonth() + 1);
-        const fullSchedule = [...currentSchedule, ...nextSchedule];
-
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const match = fullSchedule.find(s => s.assignedDesigner.toLowerCase().includes(query) && s.date >= todayStart);
-
-        if (match) {
-            const dateStr = match.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            document.getElementById('lookupName').innerText = match.assignedDesigner;
-            document.getElementById('lookupDate').innerText = `Next slot: ${dateStr}`;
-            const daysLeft = Math.ceil((match.date - new Date()) / (1000 * 60 * 60 * 24));
-            document.getElementById('lookupCountdown').innerText = daysLeft === 0 ? 'Today' : `In ${daysLeft}d`;
-            resultBox.classList.add('active');
-        } else {
-            document.getElementById('lookupName').innerText = "No upcoming slot";
-            document.getElementById('lookupDate').innerText = "Check the name or switch to next month.";
-            document.getElementById('lookupCountdown').innerText = "";
-            resultBox.classList.add('active');
-        }
-    }
-
+    // ─── Init ───────────────────────────────────────────────────────────────
     renderSchedule();
     lucide.createIcons();
 </script>
