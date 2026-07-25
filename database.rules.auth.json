@@ -1,0 +1,95 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+
+    "admins": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    "designers_list": {
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists() && newData.exists()",
+      ".validate": "newData.hasChildren()",
+      "$index": {
+        ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60"
+      }
+    },
+
+    "settings": {
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "rotationOffset": { ".validate": "newData.isNumber() && newData.val() >= -1000 && newData.val() <= 1000" },
+      "submissionCode": { ".validate": "newData.isString() && newData.val().length <= 32" },
+      "updatedAt":      { ".validate": "newData.isNumber()" },
+      "updatedBy":      { ".validate": "newData.isString() && newData.val().length <= 60" },
+      "$other":         { ".validate": false }
+    },
+
+    "schedule_slots": {
+      "$slotId": {
+        ".write": "auth != null && newData.exists()",
+        ".validate": "$slotId.matches(/^[0-9]{4}-(0|1|2|3|4|5|6|7|8|9|10|11)-([1-9]|[12][0-9]|3[01])$/) && newData.hasChildren()",
+
+        "approved": {
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isBoolean()"
+        },
+        "excused": {
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isBoolean()"
+        },
+        "cancelled": {
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isBoolean()"
+        },
+        "topic": {
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "overrideDesigner": {
+          ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+
+        "submitted":    { ".validate": "newData.isBoolean()" },
+        "late":         { ".validate": "newData.isBoolean()" },
+        "submittedBy":  { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "submittedAt":  { ".validate": "newData.isNumber()" },
+        "posterBytes":  { ".validate": "newData.isNumber() && newData.val() <= 3000000" },
+        "posterUrl": {
+          ".validate": "newData.isString() && newData.val().length <= 1400000 && newData.val().beginsWith('data:image/')"
+        },
+        "posterUrls": {
+          "$i": { ".validate": "newData.isString() && newData.val().length <= 1400000 && newData.val().beginsWith('data:image/')" }
+        },
+
+        "$other": { ".validate": true }
+      }
+    },
+
+    "admin_logs": {
+      "$logId": {
+        ".write": "auth != null && (!data.exists() || (root.child('admins').child(auth.uid).exists() && !newData.exists()))",
+        ".validate": "newData.hasChildren(['action', 'details'])",
+        "action":    { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "details":   { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "actor":     { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "timestamp": { ".validate": "newData.isNumber()" },
+        "$other":    { ".validate": false }
+      }
+    },
+
+    "backups": {
+      ".indexOn": ["createdAt"],
+      "$backupId": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['kind', 'createdAt']) && newData.child('kind').val() == 'uyfsr-backup'"
+      }
+    },
+
+    "$anythingElse": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

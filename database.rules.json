@@ -1,0 +1,115 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+
+    "designers_list": {
+      ".write": "newData.exists()",
+      ".validate": "newData.hasChildren()",
+      "$index": {
+        ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60"
+      }
+    },
+
+    "settings": {
+      ".write": true,
+      "rotationOffset": { ".validate": "newData.isNumber() && newData.val() >= -1000 && newData.val() <= 1000" },
+      "submissionCode": { ".validate": "newData.isString() && newData.val().length <= 32" },
+      "updatedAt": { ".validate": "newData.isNumber()" },
+      "updatedBy": { ".validate": "newData.isString() && newData.val().length <= 60" },
+      "$other": { ".validate": false }
+    },
+
+    "schedule_slots": {
+      "$slotId": {
+        ".write": "newData.exists()",
+        ".validate": "$slotId.matches(/^[0-9]{4}-(0|1|2|3|4|5|6|7|8|9|10|11)-([1-9]|[12][0-9]|3[01])$/) && newData.hasChildren()",
+
+        "topic":            { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "topicSetBy":       { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "topicSetAt":       { ".validate": "newData.isNumber()" },
+        "topicHistory": {
+          ".validate": "newData.hasChildren()",
+          "$i": {
+            "topic":    { ".validate": "newData.isString() && newData.val().length <= 300" },
+            "previous": { ".validate": "newData.isString() && newData.val().length <= 300" },
+            "by":       { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "at":       { ".validate": "newData.isNumber()" },
+            "$other":   { ".validate": false }
+          }
+        },
+
+        "assignedDesigner":  { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "committedDesigner": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "overrideDesigner":  { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "committedAt":       { ".validate": "newData.isNumber()" },
+
+        "submitted":     { ".validate": "newData.isBoolean()" },
+        "approved":      { ".validate": "newData.isBoolean()" },
+        "needsRevision": { ".validate": "newData.isBoolean()" },
+        "excused":       { ".validate": "newData.isBoolean()" },
+        "cancelled":     { ".validate": "newData.isBoolean()" },
+        "late":          { ".validate": "newData.isBoolean()" },
+
+        "revisionNote":    { ".validate": "newData.isString() && newData.val().length <= 240" },
+        "excusedReason":   { ".validate": "newData.isString() && newData.val().length <= 240" },
+        "cancelledReason": { ".validate": "newData.isString() && newData.val().length <= 240" },
+        "revisionCount":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 500" },
+
+        "submittedBy": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "approvedBy":  { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "excusedBy":   { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "cancelledBy": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "updatedBy":   { ".validate": "newData.isString() && newData.val().length <= 60" },
+
+        "submittedAt":         { ".validate": "newData.isNumber()" },
+        "approvedAt":          { ".validate": "newData.isNumber()" },
+        "excusedAt":           { ".validate": "newData.isNumber()" },
+        "cancelledAt":         { ".validate": "newData.isNumber()" },
+        "revisionRequestedAt": { ".validate": "newData.isNumber()" },
+        "restoredAt":          { ".validate": "newData.isNumber()" },
+        "updatedAt":           { ".validate": "newData.isNumber()" },
+        "posterBytes":         { ".validate": "newData.isNumber() && newData.val() <= 3000000" },
+
+        "posterUrl": {
+          ".validate": "newData.isString() && newData.val().length <= 1400000 && newData.val().beginsWith('data:image/')"
+        },
+        "posterUrls": {
+          ".validate": "newData.hasChildren() && newData.hasChildren(['0'])",
+          "$i": {
+            ".validate": "newData.isString() && newData.val().length <= 1400000 && newData.val().beginsWith('data:image/')"
+          }
+        },
+
+        "$other": { ".validate": false }
+      }
+    },
+
+    "admin_logs": {
+      ".read": true,
+      "$logId": {
+        ".write": "!data.exists() || !newData.exists()",
+        ".validate": "newData.hasChildren(['action', 'details'])",
+        "action":    { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "details":   { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "actor":     { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "timestamp": { ".validate": "newData.isNumber()" },
+        "$other":    { ".validate": false }
+      }
+    },
+
+    "backups": {
+      ".read": true,
+      ".indexOn": ["createdAt"],
+      "$backupId": {
+        ".write": "!data.exists() || !newData.exists()",
+        ".validate": "newData.hasChildren(['kind', 'createdAt']) && newData.child('kind').val() == 'uyfsr-backup'"
+      }
+    },
+
+    "$anythingElse": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
